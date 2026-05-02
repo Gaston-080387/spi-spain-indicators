@@ -1,0 +1,76 @@
+# ============================================
+# CRITICAL — Private folder (highest priority)
+# ============================================
+99-private/
+99-private/**
+
+# Source files — too large for Git
+**/source-files/
+**/*.csv
+**/*.xls
+**/*.xlsx
+!src/power-bi/**/*.xlsx
+
+# ============================================
+# Python
+# ============================================
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.python-version
+
+# ============================================
+# Distribution / packaging
+# ============================================
+build/
+dist/
+*.egg-info/
+*.egg
+
+# ============================================
+# IDE / Editor
+# ============================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ============================================
+# OS
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ============================================
+# Sensitive — credentials, secrets
+# ============================================
+*.env
+.env.local
+.env.*.local
+*.key
+*.pem
+*.p12
+*.pfx
+secrets.json
+credentials.json
+config.local.*
+
+# ============================================
+# Logs
+# ============================================
+*.log
+logs/
