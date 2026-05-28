@@ -49,7 +49,7 @@ log = logging.getLogger("ipi_bronze")
 # ──────────────────────────────────────────────────────────────────────────────
 CSV_PATH = Path(
     "/Users/gastonbaloira/Projects/Portfolio/01_spi-indicators"
-    "/01-source-files/02-IPI-60272.csv"
+    "/99-private/source-files/02-IPI-60272.csv"
 )
 
 SQL_SERVER   = "spi-sqlserver-gb.database.windows.net"
