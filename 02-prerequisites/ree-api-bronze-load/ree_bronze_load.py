@@ -48,9 +48,9 @@ REGIONES = [
     {"nombre": "Catalunya", "id": GEO_ID_CAT, "limit": GEO_LIMIT_CAT},
 ]
 
-TIMEOUT = 30
-BASE = 2
-RETRIES = 3
+TIMEOUT = 30 # segundos
+BASE = 2 # base para el backoff exponencial
+MAX_ATTEMPTS = 4 # attempts = 1 + 3 retries
 
 
 OUTPUT = "ree_demanda.parquet"
@@ -95,9 +95,9 @@ def fetch_with_retry(url: str) -> dict:
         Exception: Si se alcanza el número máximo de reintentos sin éxito.
     """
     
-    for attempt in range(1, RETRIES + 1):
+    for attempt in range(1, MAX_ATTEMPTS + 1):
         try:
-            log.info(f"Intento {attempt} de {RETRIES}: Llamando a la API...")
+            log.info(f"Intento {attempt} de {MAX_ATTEMPTS}: Llamando a la API...")
             response = requests.get(url, timeout=TIMEOUT)
             status = response.status_code
 
@@ -108,9 +108,13 @@ def fetch_with_retry(url: str) -> dict:
             
             #Errores temporales
             elif status in (429, 500, 502, 503, 504):
-                delay = BASE ** attempt
-                log.warning(f"Error temporal {status}. Reintentando...")
-                time.sleep(delay)
+                if attempt < MAX_ATTEMPTS:
+                    delay = BASE ** attempt
+                    log.warning(f"Error temporal {status}. Reintentando...")
+                    time.sleep(delay)
+                else:
+                    log.error(f"Máximo de reintentos alcanzado. Error temporal persistente: {status}.")
+                    raise Exception(f"Error temporal persistente en la API: {status}")
             
             #Errores permanentes
             else:
@@ -118,7 +122,7 @@ def fetch_with_retry(url: str) -> dict:
                 raise Exception(f"Error inesperado en la API: {status}")
         
         except (requests.exceptions.RequestException):
-            if attempt < RETRIES:
+            if attempt < MAX_ATTEMPTS:
                 delay = BASE ** attempt
                 log.info(f"Reintentando en {delay} segundos...")
                 time.sleep(delay)
