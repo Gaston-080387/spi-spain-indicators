@@ -36,16 +36,10 @@ START_YEAR = 2014
 END_YEAR = datetime.now().year
 TIME_TRUNC = "month"
 GEO_TRUNC = "electric_system"
-GEO_ID_ESP = "8741"
-GEO_LIMIT_ESP = "peninsular"
-GEO_ID_MAD = "13"  
-GEO_LIMIT_MAD = "ccaa"
-GEO_ID_CAT = "9" 
-GEO_LIMIT_CAT = "ccaa"
 REGIONES = [
-    {"nombre": "Espana", "id": GEO_ID_ESP, "limit": GEO_LIMIT_ESP},
-    {"nombre": "Madrid", "id": GEO_ID_MAD, "limit": GEO_LIMIT_MAD},
-    {"nombre": "Catalunya", "id": GEO_ID_CAT, "limit": GEO_LIMIT_CAT},
+    {"geo_name": "Espana", "geo_id": "8741", "geo_limit": "peninsular"},
+    {"geo_name": "Madrid", "geo_id": "13", "geo_limit": "ccaa"},
+    {"geo_name": "Catalunya", "geo_id": "9", "geo_limit": "ccaa"},
 ]
 
 TIMEOUT = 30 # segundos
@@ -138,6 +132,22 @@ def fetch_with_retry(url: str) -> dict:
 # ────────────────────────────────────────────────────────────────────────────
 
 """Funcion para parsear la respuesta de la API y convertirla en un DataFrame."""
+def parse_response(response: dict, geo_name: str) -> list:
+    """
+    Parsea la respuesta de la API y extrae los datos relevantes.
+    Args:
+        response (dict): La respuesta de la API en formato JSON.
+        geo_name (str): El nombre de la geolocalización.
+    Returns:
+        list: Una lista de diccionarios con los datos parseados.
+    """
+    filas = []
+    for region in response.get("included", []):
+        if region.get("type") == "geo" and region.get("attributes", {}).get("name") == geo_name:
+            data = region.get("attributes", {}).get("values", [])
+            filas.append(data)
+    return filas
+
 
 # ────────────────────────────────────────────────────────────────────────────
 # #TODO_5. Crear funcion build_dataframe
