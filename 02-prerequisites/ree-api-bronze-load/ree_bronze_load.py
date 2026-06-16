@@ -131,7 +131,6 @@ def fetch_with_retry(url: str) -> dict:
 # #TODO_4. Crear funcion parse_response
 # ────────────────────────────────────────────────────────────────────────────
 
-"""Funcion para parsear la respuesta de la API y convertirla en un DataFrame."""
 def parse_response(response: dict, geo_name: str) -> list:
     """
     Parsea la respuesta de la API y extrae los datos relevantes.
@@ -142,10 +141,18 @@ def parse_response(response: dict, geo_name: str) -> list:
         list: Una lista de diccionarios con los datos parseados.
     """
     filas = []
-    for region in response.get("included", []):
-        if region.get("type") == "geo" and region.get("attributes", {}).get("name") == geo_name:
-            data = region.get("attributes", {}).get("values", [])
-            filas.append(data)
+    for serie in response["included"]:  
+        serie_type = serie["type"] 
+        for point in serie["attributes"]["values"]:
+            fila = {
+                "serie_type": serie_type,
+                "geo_name": geo_name,
+                "datetime": point.get("datetime"),
+                "value": point.get("value"),
+                "percentage": point.get("percentage")
+            }
+            filas.append(fila)
+
     return filas
 
 
