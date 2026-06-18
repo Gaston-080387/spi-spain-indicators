@@ -73,6 +73,7 @@ def build_request_url(geo_limit: str, geo_ids: str) -> str:
         f"geo_limit={geo_limit}&"
         f"geo_ids={geo_ids}"
     )
+    
     return url
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -124,7 +125,7 @@ def fetch_with_retry(url: str) -> dict:
             else:
                 log.error("Máximo de reintentos alcanzado. Fallo la llamada a la API.")
                 raise
-    
+
     raise RuntimeError("Error al llamar a la API después de varios intentos.")
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -155,12 +156,24 @@ def parse_response(response: dict, geo_name: str) -> list:
 
     return filas
 
-
 # ────────────────────────────────────────────────────────────────────────────
 # #TODO_5. Crear funcion build_dataframe
 # ────────────────────────────────────────────────────────────────────────────
 
-"""Funcion para construir el DataFrame a partir de los datos parseados."""
+def build_dataframe(data: list) -> pd.DataFrame:
+    """
+    Construye un DataFrame de pandas a partir de una lista de diccionarios.
+    Args:
+        data (list): Una lista de diccionarios con los datos parseados.
+    Returns:
+        pd.DataFrame: Un DataFrame con los datos.
+    """
+    df = pd.DataFrame(data)
+    df["_ingestion_timestamp"] = datetime.now(timezone.utc).isoformat()
+    df["_source_api"] = ENDPOINT
+    df = df.astype(str) # Se convierte a string por principio Bronze.
+
+    return df
 
 # ────────────────────────────────────────────────────────────────────────────
 # #TODO_6. Crear main para ejecutar el proceso completo
