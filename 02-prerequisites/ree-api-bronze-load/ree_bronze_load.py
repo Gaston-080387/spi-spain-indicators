@@ -6,7 +6,6 @@ Download the data in Parquet format to the working directory.
 """
 
 from datetime import datetime, timezone
-import json
 import logging
 import time
 
@@ -62,7 +61,6 @@ def build_request_url(geo_limit: str, geo_ids: str) -> str:
     Returns:
         str: The complete URL to make the REE API call.
     """
-    log.info("Building URL: ")
     url = (
         f"{URL_BASE}{ENDPOINT}?"
         f"start_date={START_YEAR}-01-01T00:00&"
@@ -121,7 +119,7 @@ def fetch_with_retry(url: str) -> dict:
                 time.sleep(delay)
             
             else:
-                log.error("Maximum retries reached. API call failed..")
+                log.error("Maximum retries reached. API call failed.")
                 raise
 
     raise RuntimeError("Error calling the API after several attempts.")
@@ -139,19 +137,19 @@ def parse_response(response: dict, geo_name: str) -> list:
     Returns:
         list: A list of dictionaries with the parsed data.
     """
-    log.info("Parsing API response..")
+    log.info("Parsing API response.")
     rows = []
     for series in response["included"]:  
         series_type = series["type"] 
         for point in series["attributes"]["values"]:
-            fila = {
-                "serie_type": series_type,
+            row = {
+                "series_type": series_type,
                 "geo_name": geo_name,
                 "datetime": point.get("datetime"),
                 "value": point.get("value"),
                 "percentage": point.get("percentage")
             }
-            rows.append(fila)
+            rows.append(row)
     return rows
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -166,7 +164,7 @@ def build_dataframe(data: list) -> pd.DataFrame:
     Returns:
         pd.DataFrame: A DataFrame with the data.
     """
-    log.info("Building DataFrame..")
+    log.debug("Building DataFrame.")
     df = pd.DataFrame(data)
     df["_ingestion_timestamp"] = datetime.now(timezone.utc).isoformat()
     df["_source_api"] = ENDPOINT
@@ -193,6 +191,9 @@ def main() -> None:
         response = fetch_with_retry(url)
         parsed_data = parse_response(response, geo_name)
         all_data.extend(parsed_data)
+        region_rows = len(parsed_data)
+        total_rows = len(all_data)
+        log.info(f"{geo_name}: {region_rows}/{total_rows}")
 
     df = build_dataframe(all_data)
     df.to_parquet(PATH_OUTPUT, index=False)
