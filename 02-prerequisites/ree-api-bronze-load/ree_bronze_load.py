@@ -52,7 +52,7 @@ PATH_OUTPUT = ("/Users/gastonbaloira/Projects/Portfolio/01_spi-indicators/"
 # Create function build_request_url
 # ────────────────────────────────────────────────────────────────────────────
 
-def build_request_url(geo_limit: str, geo_ids: str) -> str:
+def build_request_url(geo_limit: str, geo_ids: str, year: int) -> str:
     """
     Build the REE API URL with the constants and specified parameters.
     Args:
@@ -63,8 +63,8 @@ def build_request_url(geo_limit: str, geo_ids: str) -> str:
     """
     url = (
         f"{URL_BASE}{ENDPOINT}?"
-        f"start_date={START_YEAR}-01-01T00:00&"
-        f"end_date={END_YEAR}-12-31T23:59&"
+        f"start_date={year}-01-01T00:00&"
+        f"end_date={year}-12-31T23:59&"
         f"time_trunc={TIME_TRUNC}&"
         f"geo_trunc={GEO_TRUNC}&"
         f"geo_limit={geo_limit}&"
@@ -184,16 +184,16 @@ def main() -> None:
         geo_name = region["geo_name"]
         geo_id = region["geo_id"]
         geo_limit = region["geo_limit"]
+        for year in range(START_YEAR, END_YEAR + 1):
+            url = build_request_url(geo_limit, geo_id, year)
+            log.info(f"Processing region: {geo_name}/{year}")
 
-        url = build_request_url(geo_limit, geo_id)
-        log.info(f"Processing region: {geo_name}")
-
-        response = fetch_with_retry(url)
-        parsed_data = parse_response(response, geo_name)
-        all_data.extend(parsed_data)
-        region_rows = len(parsed_data)
-        total_rows = len(all_data)
-        log.info(f"{geo_name}: {region_rows} rows/total: {total_rows}")
+            response = fetch_with_retry(url)
+            parsed_data = parse_response(response, geo_name)
+            all_data.extend(parsed_data)
+            year_rows = len(parsed_data)
+            total_rows = len(all_data)
+            log.info(f"{geo_name} ({year}): {year_rows} rows/total: {total_rows}")
 
     df = build_dataframe(all_data)
     df.to_parquet(PATH_OUTPUT, index=False)
