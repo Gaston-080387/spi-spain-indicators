@@ -193,7 +193,7 @@ def main() -> None:
         all_data.extend(parsed_data)
         region_rows = len(parsed_data)
         total_rows = len(all_data)
-        log.info(f"{geo_name}: {region_rows}/{total_rows}")
+        log.info(f"{geo_name}: {region_rows} rows/total: {total_rows}")
 
     df = build_dataframe(all_data)
     df.to_parquet(PATH_OUTPUT, index=False)
