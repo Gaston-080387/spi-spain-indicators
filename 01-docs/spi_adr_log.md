@@ -206,3 +206,63 @@ updates by `(run_id, pipeline_name)`.
 - **Source seed values.** `spi_dim_source` is seeded with `update_frequency = 'Monthly'`
   for all five sources and `source_url = NULL`. `[TBC: confirm official source URLs for
   the final source catalog.]`
+
+---
+
+## ADR-006 — Fabric capacity: trial F4 in North Europe
+
+**Date:** 2026-08-22
+**Status:** Accepted
+
+### Context
+
+Fabric trial capacity became available after the 90-day tenant age
+restriction lapsed. Activation offers a one-time region choice that
+cannot be changed afterwards: relocating a workspace to a different
+region requires deleting all non-Power BI Fabric items first.
+
+Tenant home region is Spain Central (Madrid). Spain Central was not
+offered in the trial capacity region dropdown. The dialog pre-selected
+Australia East, which is neither the home region nor a viable choice
+from Spain.
+
+The Azure SQL Database source is hosted in North Europe.
+
+Trial capacity was provisioned at F4 (4 CUs). No resize option is
+exposed for this tenant.
+
+Capacity: `Trial-20260821T221247Z-…` (full identifier in `99-private/`)
+Activated 2026-08-21, expires ~2026-10-20.
+
+### Decision
+
+Deploy trial capacity in **North Europe**, accepting a split between
+tenant home region (Spain Central) and capacity region (North Europe).
+
+### Rationale
+
+- Co-locates compute with the Azure SQL source, avoiding cross-region
+  transfer on the highest-volume ingestion path.
+- North Europe supports all Fabric workloads required by SPI.
+- EU data residency is maintained for Spanish public sector data.
+- Latency from Barcelona (~35-45 ms) is acceptable for development.
+
+### Consequences
+
+- Multi-geo configuration: tenant-level storage remains in Spain
+  Central; SPI workspace content resides in North Europe. Items
+  requiring availability in both regions (e.g. Fabric SQL Database)
+  are excluded from scope. Warehouse is used instead.
+- F4 provides 8 Spark vCores. Ingestion of the five sources must be
+  sequenced rather than parallelised. See ADR-007 (orchestration order).
+- Default Medium starter pool sessions exceed the available vCores;
+  Spark autoscale must be pinned to 1 node.
+- All Fabric items must be reproducible from the repository so that
+  capacity lapse costs time, not work. F2 pay-as-you-go identified
+  as fallback.
+
+### Notes
+
+Warehouse and SQL analytics endpoint CU consumption calculations
+changed in August 2026. Cost baselines must be measured on this
+capacity, not taken from external sources.
