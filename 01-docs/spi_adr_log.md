@@ -232,7 +232,7 @@ Trial capacity was provisioned at F4 (4 CUs). No resize option is
 exposed for this tenant.
 
 Capacity: `Trial-20260821T221247Z-…` (full identifier in `99-private/`)
-Activated 2026-08-21, expires ~2026-10-20.
+Activated 2026-08-21, expires 2026-10-20.
 
 ### Decision
 
