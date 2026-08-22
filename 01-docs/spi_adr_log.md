@@ -27,6 +27,8 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 002 | Derived measures as DAX time-intelligence, not materialized fact rows | Accepted | Gold model, semantic model |
 | 003 | INE base index only in the star; official variations retained in Bronze | Accepted | Silver logic, DAX measures |
 | 004 | `VARCHAR` over `NVARCHAR` for all persisted Warehouse columns | Accepted | Gold DDL |
+| 005 | Last run ordered by start_time | Accepted | Source ingestion |
+| 006 | Capacity region and SKU decision | Accepted | Capacity strategy |
 
 ---
 
