@@ -29,6 +29,7 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 004 | `VARCHAR` over `NVARCHAR` for all persisted Warehouse columns | Accepted | Gold DDL |
 | 005 | Last run ordered by start_time | Accepted | Source ingestion |
 | 006 | Capacity region and SKU decision | Accepted | Capacity strategy |
+| 007 | Bronze ingestion orchestation | Accepted | Bronze pipeline |
 
 ---
 
@@ -268,3 +269,95 @@ tenant home region (Spain Central) and capacity region (North Europe).
 Warehouse and SQL analytics endpoint CU consumption calculations
 changed in August 2026. Cost baselines must be measured on this
 capacity, not taken from external sources.
+
+---
+
+## ADR-007 — Bronze ingestion orchestration: order, dependencies and logging
+
+**Date:** 2026-08-24
+**Status:** Accepted
+
+### Context
+
+`spi_pl_bronze` ingests five independent public data sources into the
+Bronze layer. No source depends on the output of any other. The pipeline
+must therefore decide execution order, failure semantics between
+sources, and how each source records its outcome.
+
+Capacity is F4 (see ADR-006), providing 8 Spark vCores with autoscale
+pinned to a single node. The three notebook activities contend for this
+resource; the two Copy Activities do not consume Spark.
+
+Phase 1 catalogues the sources in ascending order of ingestion
+complexity. Phase 2 specifies the Bronze ingestion tool per source.
+
+### Decision
+
+**Execution order** (linear chain, complexity-ascending):
+
+| # | Source | Bronze ingestion tool | Format |
+|---|--------------|------------------------------|-------------------|
+| 1 | IPC (INE) | Pipeline — Copy Activity | CSV (HTTP) |
+| 2 | IPI (INE) | Pipeline — Copy Activity | Azure SQL |
+| 3 | Energy (REE) | Notebook (Python) | REST API / JSON |
+| 4 | Construction | Notebook (Python) | 4 × legacy XLS |
+| 5 | Tax (AEAT) | Notebook (Python) | XLSX, multi-sheet |
+| 6 | Log gate | Lookup + If Condition + Fail | — |
+
+**Dependency semantics:**
+
+- Activities 1→5 are chained **On completion**. A failure in one source
+  does not prevent subsequent sources from attempting ingestion.
+- Layer transitions in `spi_pl_master` (Bronze → Silver → Gold) remain
+  **On success**. Transforming un-ingested data is worse than not
+  running.
+
+**Logging:**
+
+- Sources 3–5 (notebooks) log their own outcome via `spi_logging.py`.
+- Sources 1–2 (Copy Activities) cannot execute Python. Each is followed
+  by a **Script activity** issuing T-SQL against the log table.
+- Activity 6 reads the log for the current run and **fails the pipeline
+  deliberately** if any source reported failure.
+
+### Rationale
+
+- **Complexity-ascending order enables fail-fast.** Configuration
+  problems with the workspace, capacity or Lakehouse surface while
+  ingesting a plain CSV, not while debugging merged cells in `xlrd`.
+- **On completion reflects the domain.** The sources are genuinely
+  independent; a REE API outage should not block Tax ingestion.
+- **Activity 6 is required, not optional.** With every activity chained
+  on completion, a pipeline whose third source failed reports
+  *Succeeded*. Green pipeline with missing data is a silent failure.
+  The log gate restores truthful run status while preserving partial
+  execution.
+- **Script activities keep logging co-located with the source.** Each
+  source records its own outcome at the moment it occurs, consistent
+  with notebook behaviour. The alternative — deriving sources 1–2
+  outcomes from pipeline expressions inside activity 6 — produces no
+  record at all if the pipeline dies before reaching it.
+
+### Alternatives considered
+
+**Parallel execution of activities 1 and 2.** IPC and IPI are Copy
+Activities and do not contend for Spark vCores, so they could run
+concurrently. Deferred: expected saving is under one minute, while
+cold Spark session startup across three sequential notebooks is the
+dominant cost on F4. Revisit after the step-8 baseline measurement
+quantifies actual runtimes. Spark session reuse across notebook
+activities is the higher-value optimisation to investigate at that
+point.
+
+### Consequences
+
+- Pipeline contains 8 activities: 2 Copy + 2 Script + 3 Notebook +
+  1 log gate (gate expands to Lookup, If Condition, Fail).
+- Partial ingestion is a supported outcome. Downstream Silver
+  processing must tolerate a Bronze table being stale rather than
+  assuming all five refreshed together.
+- The log table becomes load-bearing: it is the only record of what
+  actually ran. Its DDL is already committed
+  (`spi_log_table_ddl.sql`).
+- Three sequential cold Spark sessions per run. Accepted for now,
+  measured at step 8.
