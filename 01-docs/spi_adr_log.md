@@ -392,3 +392,169 @@ Consequences for this ADR:
   on this capacity.
 
 Decision unchanged.
+
+## ADR-008 — Warehouse collation: case-insensitive
+
+**Date:** 2026-08-26
+**Status:** Accepted
+
+### Context
+
+Fabric Warehouse defaults to `Latin1_General_100_BIN2_UTF8`, a binary
+case-sensitive collation. This differs from SQL Server and Azure SQL
+Database, where case-insensitive collations are the conventional
+default.
+
+Collation is fixed at warehouse creation and cannot be altered
+afterwards. Changing it requires creating a new warehouse and
+migrating all objects and data.
+
+SPI conforms geographic and indicator attributes across five
+independent Spanish public data sources (INE, REE, MITMA, AEAT), each
+with its own capitalisation conventions for region names and category
+labels.
+
+### Decision
+
+Set the workspace collation to
+`Latin1_General_100_CI_AS_KS_WS_SC_UTF8` before creating
+`spi_warehouse`, so the warehouse inherits it at creation.
+
+Case-insensitive, accent-sensitive.
+
+### Rationale
+
+- **Cross-source conformance.** Under a case-sensitive collation,
+  `'Cataluña'` and `'CATALUÑA'` are distinct values. Every
+  capitalisation inconsistency between sources becomes a silently
+  failed join in the Gold layer — a data quality defect that produces
+  no error, only missing rows.
+- **Accent sensitivity retained.** The `AS` component means `'Cataluña'`
+  and `'Cataluna'` remain distinct. This is intended: the objective is
+  normalising case, not stripping diacritics from Spanish place names.
+- **Consistency with the author's SQL Server background** and with the
+  conventions of the Azure SQL source system, reducing the risk of
+  case-related defects introduced by habit.
+- **Object name resilience.** `dbo.spi_dim_region` and
+  `dbo.Spi_Dim_Region` resolve identically, removing a class of
+  avoidable errors across DDL, notebooks, Dataflows and DAX.
+
+### Alternatives considered
+
+**Accept the `BIN2_UTF8` default.** Binary collation offers more
+efficient string filtering and sorting over Parquet. Rejected: the
+performance advantage is irrelevant at SPI's data volumes (fact table
+estimated ~360,000 rows before the ADR-002 measure reduction), while
+the join-correctness risk is material and manifests silently.
+
+### Consequences
+
+- Slightly less efficient string comparison in the Warehouse. Not
+  measurable at this scale.
+- **Applies to the Warehouse only.** Spark string comparisons in the
+  Lakehouse remain case-sensitive regardless of this setting.
+  Case normalisation of dimension attributes therefore still belongs
+  in the Silver layer; this collation is a safety net for the Gold
+  join, not a substitute for cleansing.
+- Irreversible for `spi_warehouse`. Any future warehouse created in
+  this workspace inherits the same collation unless the workspace
+  setting is changed first.
+- The PROD warehouse created in Sprint 8 must be created in a
+  workspace with the same collation setting, or DEV and PROD will
+  diverge in join behaviour. Verify before creating PROD.
+
+## ADR-009 — Logging: target, write mechanisms and status model
+
+**Date:** 2026-08-27
+**Status:** Accepted
+
+### Context
+
+ADR-007 specifies a Script activity issuing T-SQL after each Copy
+Activity, and a log gate that reads the log table to determine whether
+the pipeline should fail. Phase 4 §2.3.3 places the logging table in
+`spi_lakehouse`.
+
+These are incompatible. A Lakehouse's SQL analytics endpoint is
+read-only; T-SQL cannot INSERT into a Lakehouse Delta table. One of
+the two specifications has to move.
+
+The Spark connector for Fabric Data Warehouse supports writes from
+PySpark on Runtime 1.3, but writes in two phases — staging the
+DataFrame to intermediate storage, then COPY INTO the target table.
+
+### Decision
+
+The log table is `spi_warehouse.dbo.spi_log_pipeline_execution`.
+
+Write paths by execution context:
+
+| Component | Mechanism |
+|-----------------------------|--------------------------------------------|
+| Copy Activities (IPC, IPI) | Script activity → T-SQL INSERT/UPDATE |
+| Notebooks (Energy, Constr., Tax) | `notebookutils.data.connect_to_artifact()` |
+| Log gate | Lookup + If Condition + Fail |
+
+**Status model — two-phase.** Each step INSERTs with
+`status = 'running'` on entry, then UPDATEs to `success` or `failed`
+on exit. `run_id` is the master pipeline GUID (`@pipeline().RunId`),
+propagated to all children, correlating every row from one execution.
+
+### Rationale
+
+- **Single log target.** One table, queried by one log gate. Splitting
+  the log across Lakehouse and Warehouse would require the gate to
+  read from two places and reconcile them.
+- **Each write path is native to its context.** Script activities
+  already speak T-SQL. Notebooks get a direct SQL connection without
+  leaving Python.
+- **`synapsesql()` rejected for logging.** Two-phase staging plus
+  COPY INTO is disproportionate for single-row inserts. It remains
+  the correct choice for bulk DataFrame writes if Gold loading needs
+  one.
+- **Two-phase status gives execution visibility.** An orphaned
+  `running` row is diagnostic evidence: the step started and died
+  without exiting cleanly. A single insert-on-completion design
+  cannot distinguish "crashed" from "never started".
+
+### Alternatives considered
+
+**Log table in Lakehouse, Notebook activity for Copy Activity
+logging.** Rejected. A Spark session consumes 4.0 CU/second — the
+full FTL4 allocation (see ADR-007 addendum). Starting a session to
+write two log rows is not justifiable.
+
+**Single INSERT at completion.** Simpler and halves the round trips,
+but loses in-flight visibility and cannot distinguish a crash from a
+step that never ran. Rejected.
+
+### Consequences
+
+- **Supersedes Phase 4 §2.3.3** regarding log table location. The
+  Lakehouse continues to hold Bronze and Silver Delta tables.
+- `spi_logging.py` retains the interface specified in Phase 4 §10;
+  only its internals change from a Delta write to a Warehouse
+  connection.
+- **The log gate must treat `running` as a failure state.** Otherwise
+  a crashed notebook leaves a row that is neither `success` nor
+  `failed`, and the gate passes it silently — reintroducing exactly
+  the green-pipeline/missing-data problem ADR-007 exists to prevent.
+- Every logging call is two round trips against the Warehouse.
+  Warehouse operations are not free on FTL4 (~3,011 CU-s observed
+  during DDL execution); the cost of ~20 log writes per run should be
+  measured at step 8.
+- Notebook write path depends on `notebookutils.data` being available
+  in Runtime 1.3, and on its authentication behaviour under
+  pipeline-triggered execution rather than interactive sessions.
+  Unverified at time of writing.
+
+### Notes — Fabric Warehouse T-SQL findings
+
+Encountered while implementing the log table DDL:
+
+- `TIMESTAMP` is not a date/time type in T-SQL; it is a deprecated
+  synonym for `ROWVERSION`, and only one is permitted per table.
+  Use `DATETIME2(6)` — Fabric caps datetime2 precision at 6 digits,
+  not SQL Server's 7.
+- `VARCHAR` without an explicit length silently defaults to
+  `VARCHAR(1)`. Lengths must always be stated explicitly.

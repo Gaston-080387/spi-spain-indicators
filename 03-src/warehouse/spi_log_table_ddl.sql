@@ -10,17 +10,17 @@
 -- not analytical data (Phase 4 §10). Every notebook and pipeline writes here.
 -- =====================================================================
 
-CREATE TABLE IF NOT EXISTS spi_log_pipeline_execution (
-    run_id          STRING,      -- GUID from the master pipeline, propagated to all children
-    pipeline_name   STRING,      -- pipeline or notebook identifier (e.g. spi_nb_bronze_energy)
-    layer           STRING,      -- bronze | silver | gold
-    source          STRING,      -- ipc | ipi | energy | construction | tax | all
-    status          STRING,      -- running | success | failed
-    start_time      TIMESTAMP,   -- UTC (Fabric Spark session default is UTC)
-    end_time        TIMESTAMP,   -- UTC; null while running
-    error_message   STRING,      -- exception / DQ summary; null on success
-    rows_processed  BIGINT       -- rows written by this execution; null while running / on failure
-) USING DELTA;
+CREATE TABLE dbo.spi_log_pipeline_execution (
+    run_id           VARCHAR(36)   NOT NULL,  -- GUID from master pipeline
+    pipeline_name    VARCHAR(100)  NOT NULL,  -- e.g. spi_nb_bronze_energy
+    layer            VARCHAR(10)   NOT NULL,  -- bronze | silver | gold
+    source           VARCHAR(20)   NOT NULL,  -- ipc | ipi | energy | construction | tax | all
+    status           VARCHAR(10)   NOT NULL,  -- running | success | failed
+    start_time       DATETIME2(6)  NOT NULL,  -- UTC
+    end_time         DATETIME2(6)  NULL,      -- UTC; null while running
+    error_message    VARCHAR(4000) NULL,      -- exception / DQ summary; null on success
+    rows_processed   INT           NULL       -- null while running / on failure
+);
 
 
 -- =====================================================================
