@@ -361,3 +361,34 @@ point.
   (`spi_log_table_ddl.sql`).
 - Three sequential cold Spark sessions per run. Accepted for now,
   measured at step 8.
+
+### Addendum — 2026-08-26: measured baseline
+
+The rationale above assumed cold Spark session startup was the dominant
+runtime cost. Measurement contradicts this: session attach was ~5 seconds
+on the Starter pool, not minutes. That argument for deferring parallel
+execution of activities 1 and 2 does not hold.
+
+A stronger constraint was measured in its place. A single Spark session
+consumed 1,375.95 CU-seconds over 343.98 seconds of session lifetime —
+4.0 CU per second, the full FTL4 allocation, held continuously for as
+long as the session is alive regardless of whether it is computing.
+
+Consequences for this ADR:
+
+- Sequential execution of activities 3–5 is not a prudential choice but
+  a capacity constraint: two concurrent Spark sessions would require
+  8 CU against an available 4.
+- High concurrency mode is enabled at workspace level, allowing notebook
+  activities within a pipeline to share one session. Whether this applies
+  to the three Bronze notebooks is unverified and should be tested at
+  step 8; if it works, the three notebooks cost one session rather than
+  three.
+- Deferral of parallel execution for activities 1 and 2 stands, but on
+  the grounds of measuring before optimising rather than on session
+  startup cost.
+- Warehouse operations consumed 3,011 CU-seconds during DDL execution,
+  more than the notebook session. Warehouse activity is not negligible
+  on this capacity.
+
+Decision unchanged.
