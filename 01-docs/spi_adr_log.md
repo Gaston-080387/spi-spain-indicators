@@ -30,6 +30,8 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 005 | Last run ordered by start_time | Accepted | Source ingestion |
 | 006 | Capacity region and SKU decision | Accepted | Capacity strategy |
 | 007 | Bronze ingestion orchestation | Accepted | Bronze pipeline |
+| 008 | Warehouse collation: case-insensitive  | Accepted | Gold layer |
+| 009 | Logging: target, write mechanisms and status model | Accepted | Infraestructure |
 
 ---
 
