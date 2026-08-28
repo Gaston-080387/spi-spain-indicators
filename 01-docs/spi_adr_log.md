@@ -395,6 +395,43 @@ Consequences for this ADR:
 
 Decision unchanged.
 
+### Addendum — 2026-08-28: constraint restated after first pipeline run
+
+The 2026-08-26 addendum established that a Spark session consumes
+4.0 CU/second. First end-to-end pipeline execution (IPC Bronze
+ingestion, 331,520 rows) allows the constraint to be stated precisely.
+
+Measured, full day of activity including DDL work, interactive queries
+and the pipeline run:
+
+| Item | CU-seconds |
+|-------------------|------------|
+| spi_warehouse | 1,694.93 |
+| spi_lakehouse | 198.64 |
+| **Total** | **1,893.58** |
+
+Daily capacity budget at FTL4: 4 CU x 86,400 s = 345,600 CU-seconds.
+Consumption represents 0.55% of one day. Average utilisation 0.38%,
+peak 1.18%, zero throttling and zero rejections.
+
+**The constraint is instantaneous concurrency, not daily volume.**
+Two concurrent Spark sessions each require the full 4 CU at the same
+moment and cannot coexist. Total consumption over a day is negligible;
+the full five-source pipeline is expected to remain within a few
+percent of the daily budget and could run many times per day without
+approaching the ceiling.
+
+Sequential execution of activities 3-5 therefore stands, but the
+justification is the instantaneous CU ceiling — not capacity scarcity.
+The earlier framing ("capacity is tight") is inaccurate and should not
+be used in defense of this decision.
+
+Note: item-level figures are daily aggregates and include interactive
+development queries. Per-activity attribution requires the Operations
+tab or TimePoint drill-through; not isolated at time of writing.
+
+Decision unchanged.
+
 ## ADR-008 — Warehouse collation: case-insensitive
 
 **Date:** 2026-08-26
@@ -560,3 +597,47 @@ Encountered while implementing the log table DDL:
   not SQL Server's 7.
 - `VARCHAR` without an explicit length silently defaults to
   `VARCHAR(1)`. Lengths must always be stated explicitly.
+
+### Amendment — 2026-08-28: asymmetric status model
+
+The original decision specified two-phase logging (INSERT 'running',
+then UPDATE) uniformly across all sources. Implementation of the IPC
+Copy Activity established that this is not appropriate for
+pipeline-native activities.
+
+**Revised decision.**
+
+| Component | Status model |
+|------------------------|--------------------------------------|
+| Copy Activities | Single-phase: one INSERT after completion |
+| Notebooks | Two-phase: INSERT 'running', UPDATE on exit |
+
+**Rationale — failure mode, not convenience.**
+
+A notebook controls its own error handling and can update its row to
+'failed' via try/except. What it cannot catch is a hard termination:
+session loss, out-of-memory, capacity throttling. The orphaned
+'running' row is the only evidence such a failure occurred.
+
+A Copy Activity cannot self-report. The pipeline logs on its behalf
+via a Script activity chained On completion, reading
+`activity('cp_<source>').Status`. A pre-insert would only record that
+the preceding Script ran — information already visible in the
+monitoring view.
+
+The gate's completeness check (`sources_logged < 5`) already covers
+the residual case: a Copy Activity failing without its Script
+executing produces no log row, which fails the pipeline. The
+'running' row is therefore redundant for correctness in this path and
+diagnostically least useful where it is cheapest to omit.
+
+**Implementation note.** Pipeline parameter defaults must be literals,
+so `run_id` cannot default to `@pipeline().RunId`. Both the Script
+activities and the log gate use:
+
+    @{if(empty(pipeline().parameters.run_id),
+         pipeline().RunId,
+         pipeline().parameters.run_id)}
+
+Standalone runs log their own RunId; runs invoked by `spi_pl_master`
+log the master's, preserving correlation across child pipelines.
