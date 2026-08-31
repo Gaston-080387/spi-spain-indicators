@@ -272,6 +272,17 @@ Warehouse and SQL analytics endpoint CU consumption calculations
 changed in August 2026. Cost baselines must be measured on this
 capacity, not taken from external sources.
 
+### Addendum — 2026-08-31: Azure SQL access model
+
+Phase 4 §8.3 specifies least privilege (CREATE USER FROM EXTERNAL
+PROVIDER + GRANT SELECT on the staging table). Not implemented: the
+Fabric identity is already the Entra admin of spi-sqlserver-gb and
+holds full access by default. The project operates with a single
+identity; creating a second principal solely to demonstrate least
+privilege was judged out of scope. In a client engagement, Fabric
+would authenticate as a dedicated service principal with SELECT on
+the source table only.
+
 ---
 
 ## ADR-007 — Bronze ingestion orchestration: order, dependencies and logging
