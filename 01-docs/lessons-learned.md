@@ -118,3 +118,26 @@ GitHub Git integration requires a dedicated tenant setting ("Users can sync work
 Single-source Bronze pipelines are named `spi_pl_bronze_<source>`.
 The unsuffixed `spi_pl_bronze` is reserved for the master
 orchestration pipeline (Sprint 7, S7A-1).
+
+## S3-7 — Azure SQL connection findings
+
+- The sprint plan describes this as a cross-tenant connection. It isn't.
+  Both identities live in gastonbaloiraoutlook.onmicrosoft.com
+  (Phase 4 §8.1). The task is same-tenant and correspondingly simpler.
+- The Fabric identity is already the Entra admin of spi-sqlserver-gb,
+  so the GRANT in Phase 4 §8.3 was unnecessary. Deviation from the
+  least-privilege model is documented.
+- Two Entra identities exist in this project. The portal account
+  (gaston.baloira@outlook.com) owns the subscription but has no database
+  access; the work account owns Fabric and administers SQL. The Query
+  editor uses the portal session identity and therefore cannot query
+  this database.
+- Fabric connection type is "SQL Server" — there is no separate Azure SQL
+  Database entry. Authentication method "OAuth 2.0" is what other
+  surfaces label "Organizational account".
+- OAuth 2.0 stores a delegated user token that expires. Pipeline
+  failures with authentication errors weeks later are re-authentication,
+  not misconfiguration. Production would use a service principal or
+  workspace identity.
+- AADSTS70008 on connection creation is a transient authorization-code
+  expiry, not a permissions problem. Retrying resolves it.
