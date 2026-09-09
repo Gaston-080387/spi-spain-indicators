@@ -5,8 +5,6 @@ One-time setup scripts that prepare the ground before the Fabric pipeline
 bootstraps Azure SQL with realistic source data so the pipeline has a
 transactional source to read; the other three are local validation implementations of the Bronze notebooks, each writing a Parquet snapshot that serves as the Bronze extraction baseline for later reconciliation against the Fabric Bronze output[]
 
-## Prerequisites
-
 Only `ipi-azure-sql-load/` needs authentication — it writes to Azure SQL via
 `DefaultAzureCredential`, which relies on the local Azure CLI session. Run
 `az login` before executing it. Azure CLI refresh tokens expire after 90 days
