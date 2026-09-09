@@ -9,9 +9,8 @@ Microsoft Fabric Warehouse DDL scripts and schema definitions.
   - `spi_dim_indicator.sql`
   - `spi_dim_region.sql`
   - `spi_dim_calendar.sql`
-  - `spi_dim_measure.sql`
   - `spi_dim_source.sql`
-- `data/` — Reference data inserts (dim_region, dim_calendar, dim_measure, dim_source)
+- `data/` — Reference data inserts (dim_region, dim_calendar, dim_source)
 
 ## Status
 

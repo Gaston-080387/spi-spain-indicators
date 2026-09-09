@@ -57,6 +57,13 @@ as distinct from decisions (things chosen, which are ADRs).
 Several ADRs supersede specific phase-document sections. Check the ADR
 log before treating any phase document as current.
 
+**Never edit the frozen phase documents**, even when they contradict
+current implementation. A contradiction between a phase document and
+reality is not a defect to fix — it is a deviation, and it is recorded
+in the ADR log. Correcting the phase document at source would destroy
+the reasoning trail the ADR log exists to preserve. Surface such
+contradictions; do not resolve them.
+
 ## Repository layout
 
 ```
@@ -136,4 +143,8 @@ decisions; the agent implements them.
 - **Flag uncertainty explicitly.** Fabric changes faster than training
   data. Say when something needs verifying against current docs rather
   than asserting it.
+- **State the intended change before making it.** Even when the session
+  permission mode would allow editing without a prompt, say which files
+  will change and how, so the author can stop it before rather than
+  review it after.
 - **Never commit.** Leave changes staged or unstaged for review.
