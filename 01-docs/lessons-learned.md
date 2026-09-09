@@ -31,6 +31,25 @@ Findings are recorded here. *Decisions* are recorded in
 
 ---
 
+## notebookutils — what it does not do
+
+Runtime 1.3. Verified by introspection in a sandbox notebook, not from
+documentation.
+
+- `notebookutils.data` is data profiling — `convert_to_spark_df`, `profile`,
+  `profile_for_data_wrangler`. No connection or query methods, and no
+  `help()`.
+- `notebookutils.warehouse` manages Warehouse artifacts — create, get,
+  update, delete, list. It does not execute SQL against them.
+- `notebookutils.connections` exposes `getCredential` only.
+
+There is no `notebookutils` path for running arbitrary SQL against a Fabric
+Warehouse from a notebook. Writing to a Warehouse from PySpark requires the
+Spark connector (`synapsesql`), which stages the DataFrame and issues
+`COPY INTO`.
+
+---
+
 ## Capacity — FTL4 (4 CU)
 
 - A Spark session consumes 4.0 CU/second for its entire lifetime,

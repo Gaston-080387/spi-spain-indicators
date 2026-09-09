@@ -652,3 +652,20 @@ activities and the log gate use:
 
 Standalone runs log their own RunId; runs invoked by `spi_pl_master`
 log the master's, preserving correlation across child pipelines.
+
+### Addendum — 2026-09-09: notebook write mechanism invalid
+
+The decision specifies notebooks writing log rows via
+`notebookutils.data.connect_to_artifact()`. That method does not exist
+in Runtime 1.3, and no equivalent exists elsewhere in `notebookutils`
+(see `lessons-learned.md`).
+
+The Copy Activity path (Script activity → T-SQL) is unaffected and
+remains valid. The notebook path requires a replacement mechanism.
+Candidates: the Spark connector `synapsesql()` (rejected in the original
+decision as disproportionate for single-row writes, but functional), or
+relocating notebook logging outside the notebook — a Script activity
+after each Notebook activity, reading the notebook's exit value.
+
+Deferred to Sprint 5, where the first Bronze notebook provides a real
+consumer to design against.
