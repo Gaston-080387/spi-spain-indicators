@@ -7,6 +7,7 @@ Download the data in Parquet format to the working directory.
 
 from datetime import datetime, timezone
 import logging
+from pathlib import Path
 import time
 
 import pandas as pd
@@ -45,9 +46,7 @@ MAX_ATTEMPTS = 4 # attempts = 1 + 3 retries
 
 
 OUTPUT = "ree_demanda.parquet"
-PATH_OUTPUT = ("/Users/gastonbaloira/Projects/Portfolio/01_spi-indicators/"
-               "02-prerequisites/ree-api-bronze-load/outputs/" + OUTPUT
-)
+PATH_OUTPUT = (Path(__file__).parent / "outputs" / OUTPUT).resolve()
 # ────────────────────────────────────────────────────────────────────────────
 # Create function build_request_url
 # ────────────────────────────────────────────────────────────────────────────

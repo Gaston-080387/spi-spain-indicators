@@ -33,10 +33,8 @@ FILES = [
     {"file_id": "01402600.XLS", "agent": "entes",   "is_continuation": False},
     {"file_id": "01402800.XLS", "agent": "entes",   "is_continuation": True},
 ]
-INPUT_FOLDER =  ("/Users/gastonbaloira/Projects/Portfolio/01_spi-indicators/"
-               "02-prerequisites/cons-xls-bronze-load/input/")
-OUTPUT_FOLDER =  ("/Users/gastonbaloira/Projects/Portfolio/01_spi-indicators/"
-               "02-prerequisites/cons-xls-bronze-load/output/")
+INPUT_FOLDER = (Path(__file__).parent / "input").resolve()
+OUTPUT_FOLDER = (Path(__file__).parent / "output").resolve()
 
 # ────────────────────────────────────────────────────────────────────────────
 # Create function download_file

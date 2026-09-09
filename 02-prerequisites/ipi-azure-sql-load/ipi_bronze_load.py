@@ -47,10 +47,9 @@ log = logging.getLogger("ipi_bronze")
 # ──────────────────────────────────────────────────────────────────────────────
 # 1. Configuration  ← only section that needs editing between environments
 # ──────────────────────────────────────────────────────────────────────────────
-CSV_PATH = Path(
-    "/Users/gastonbaloira/Projects/Portfolio/01_spi-indicators"
-    "/99-private/source-files/02-IPI-60272.csv"
-)
+CSV_PATH = (
+    Path(__file__).parent / ".." / ".." / "99-private" / "source-files" / "02-IPI-60272.csv"
+).resolve()
 
 SQL_SERVER   = "spi-sqlserver-gb.database.windows.net"
 SQL_DATABASE = "spi_staging"

@@ -31,14 +31,8 @@ URL_XLSX = (
     "Recaudacion_Tributaria/Informes_mensuales/Ingresos_por_Delegaciones.xlsx"
 )
 SHEET_NAME = "datos_delegaciones"
-INPUT_FOLDER = (
-    "/Users/gastonbaloira/Projects/Portfolio/01_spi-indicators/"
-    "02-prerequisites/tax-xlsx-bronze-load/input/"
-)
-OUTPUT_FOLDER = (
-    "/Users/gastonbaloira/Projects/Portfolio/01_spi-indicators/"
-    "02-prerequisites/tax-xlsx-bronze-load/output/"
-)
+INPUT_FOLDER = (Path(__file__).parent / "input").resolve()
+OUTPUT_FOLDER = (Path(__file__).parent / "output").resolve()
 
 # ────────────────────────────────────────────────────────────────────────────
 # Create function download_file
