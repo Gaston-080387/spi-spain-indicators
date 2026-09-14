@@ -25,17 +25,32 @@ is the deliverable as much as the code.
 
 ## Current state
 
-**Sprint 3 (Fabric environment setup) — nearly complete.**
+**Sprint 3 (Fabric environment setup) — closed 2026-09-10.**
 
-Done: trial capacity activated and configured, workspace provisioned,
+Trial capacity activated and configured, workspace provisioned,
 Lakehouse and Warehouse created, Gold DDL and log table DDL executed,
-Azure SQL connection created, PySpark primer completed. IPC Bronze
-pipeline built and smoke-tested end to end (331,520 rows landed).
+Azure SQL connection created and tested, PySpark primer and toy
+notebook completed, defense rehearsal passed.
 
-Open: `spi_logging.py` must be updated to match ADR-009. Sprint 3
-defense rehearsal not yet held.
+**Sprint 4 (IPC and IPI end-to-end via Dataflows Gen2) — in progress.**
 
-Sprint 4 (IPC and IPI end to end) has not formally started.
+S4-1 done: `spi_pl_bronze_ipc` built and smoke-tested, 331,520 rows
+landed in `spi_bronze_ipc_raw` with Script-activity logging.
+
+Open: S4-2 through S4-9 — Silver and Gold Dataflows for both sources,
+the IPI Bronze pipeline, logging integration, validation, rehearsal.
+
+**Deferred into Sprint 5:** `spi_logging.py` (was S3-6). The module
+currently writes to a Lakehouse Delta table, which ADR-009 supersedes.
+Its replacement mechanism is unresolved — see the 2026-09-09 addendum
+to ADR-009. It has no consumer until the first Bronze notebook, so it
+is written there rather than speculatively.
+
+**Unverified assumptions** worth checking before relying on them:
+- Whether High Concurrency actually lets the three Bronze notebooks
+  share one Spark session.
+- Whether Direct Lake requires the Large semantic model storage format
+  (workspace is currently set to Small).
 
 Do not infer sprint status from commit history — it lags reality.
 Ask if it matters.
