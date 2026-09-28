@@ -31,25 +31,6 @@ Findings are recorded here. *Decisions* are recorded in
 
 ---
 
-## notebookutils — what it does not do
-
-Runtime 1.3. Verified by introspection in a sandbox notebook, not from
-documentation.
-
-- `notebookutils.data` is data profiling — `convert_to_spark_df`, `profile`,
-  `profile_for_data_wrangler`. No connection or query methods, and no
-  `help()`.
-- `notebookutils.warehouse` manages Warehouse artifacts — create, get,
-  update, delete, list. It does not execute SQL against them.
-- `notebookutils.connections` exposes `getCredential` only.
-
-There is no `notebookutils` path for running arbitrary SQL against a Fabric
-Warehouse from a notebook. Writing to a Warehouse from PySpark requires the
-Spark connector (`synapsesql`), which stages the DataFrame and issues
-`COPY INTO`.
-
----
-
 ## Capacity — FTL4 (4 CU)
 
 - A Spark session consumes 4.0 CU/second for its entire lifetime,
@@ -83,6 +64,42 @@ Spark connector (`synapsesql`), which stages the DataFrame and issues
 - A child pipeline invoked from a parent receives its own `RunId`, not
   the parent's. Correlation across a run requires passing the parent's
   ID explicitly as a parameter.
+
+---
+
+## Dataflows Gen2
+
+- A destination offers only **Append** or **Replace**. Replace truncates
+  the **entire** destination table, not the rows the dataflow produced.
+  With a fact table shared by several sources, Replace from one source
+  erases all the others.
+- Merge is greyed out until the dataflow holds a second query to merge
+  with. Reference tables (dimensions) are added as queries of their own.
+- Reference-only queries should have staging disabled and no data
+  destination, or every refresh writes a staging copy of them.
+- **Trim** removes leading and trailing whitespace only. Repeated
+  internal spaces need an explicit replace step.
+- Changing type to decimal fails on Spanish-locale values (`103,899`).
+  Replace comma with period first, then change type.
+
+---
+
+## notebookutils — what it does not do
+
+Runtime 1.3. Verified by introspection in a sandbox notebook, not from
+documentation.
+
+- `notebookutils.data` is data profiling — `convert_to_spark_df`,
+  `profile`, `profile_for_data_wrangler`. No connection or query
+  methods, and no `help()`.
+- `notebookutils.warehouse` manages Warehouse *artifacts* — create, get,
+  update, delete, list. It does not execute SQL against them.
+- `notebookutils.connections` exposes `getCredential` only.
+
+There is no notebookutils path for running arbitrary SQL against a
+Fabric Warehouse from a notebook. Writing to a Warehouse from PySpark
+requires the Spark connector (`synapsesql`), which stages the DataFrame
+and issues COPY INTO.
 
 ---
 
@@ -149,9 +166,10 @@ Spark connector (`synapsesql`), which stages the DataFrame and issues
 ### IPC (INE)
 
 - Bronze row count 331,520 against the ~50,000 estimated in Phase 1 §3.
-  Resolves to ~37,000 rows in Gold after filtering to
-  `tipo_de_dato = 'Índice'` and three regions across ~24 years. Gold
-  volume estimates in Phase 3 remain valid; the Bronze estimate does not.
+  Resolves to **12,390** rows in Gold after filtering to
+  `tipo_de_dato = 'Índice'`: 3 regions × 14 ECOICOP groups × 295 months
+  (2002-01 to 2026-07). An earlier estimate of ~37,000 was three times
+  too high; 12,390 is measured.
 - `total` uses comma as decimal separator (`103,899` = 103.899). Silver
   casting must replace comma with period before conversion.
 - The current month is published with a NULL value. Silver logic must
@@ -159,6 +177,29 @@ Spark connector (`synapsesql`), which stages the DataFrame and issues
 - For a single region and `tipo_de_dato`, `periodo` alone does not
   identify a row — `grupos_ecoicop` does, at 14 rows per period. The
   natural key is `(region, ecoicop_group, periodo)`.
+- A hand-typed dimension row contained a **double space**
+  (`04  Vivienda, agua, electricidad, gas y otros combustibles`) while
+  INE's label had one. It looks identical on screen, fails an
+  exact-match join, and was only caught because the Gold lookup used a
+  Left outer join (null key) rather than an inner join (silently dropped
+  rows). Join-key values in seeded dimensions should be copied from the
+  source data, never retyped.
+
+### IPI (INE, via Azure SQL)
+
+- The staging table is `dbo.staging_ipi_raw`, as created by
+  `ipi_bronze_load.py`. Phase 4 §2.2.4 names it `stg_ipi_raw`.
+- The loader wrote Bronze lineage columns (`_ingestion_timestamp`,
+  `_source_file`) into the staging table. The Copy Activity's additional
+  `_ingestion_timestamp` then collided with the source column: error
+  9019, duplicate column names. Resolved with an explicit-column source
+  query. A simulated transactional source should not carry Bronze
+  metadata.
+- The data-type column arrives as `Índice y tasas`, not `Tipo de dato`,
+  and is stored in Bronze as `indice_y_tasas`. The two INE sources
+  therefore differ in this column name; each Silver dataflow filters on
+  its own.
+- Bronze: 309,960 rows, matching the staging table. Gold: 8,379 rows.
 
 ### Encoding is not consistent across INE endpoints
 

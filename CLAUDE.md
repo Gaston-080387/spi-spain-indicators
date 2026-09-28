@@ -32,13 +32,27 @@ Lakehouse and Warehouse created, Gold DDL and log table DDL executed,
 Azure SQL connection created and tested, PySpark primer and toy
 notebook completed, defense rehearsal passed.
 
-**Sprint 4 (IPC and IPI end-to-end via Dataflows Gen2) — in progress.**
+**Sprint 4 (IPC and IPI end-to-end via Dataflows Gen2) — data work
+complete 2026-09-28; defense rehearsal (S4-9) pending.**
 
-S4-1 done: `spi_pl_bronze_ipc` built and smoke-tested, 331,520 rows
-landed in `spi_bronze_ipc_raw` with Script-activity logging.
+Both sources run Bronze → Silver → Gold:
 
-Open: S4-2 through S4-9 — Silver and Gold Dataflows for both sources,
-the IPI Bronze pipeline, logging integration, validation, rehearsal.
+| Source | Bronze pipeline | Silver / Gold dataflows | Gold rows |
+|---|---|---|---|
+| IPC | `spi_pl_bronze_ipc` | `spi_df_silver_ipc`, `spi_df_gold_ipc` | 12,390 |
+| IPI | `spi_pl_bronze_ipi` | `spi_df_silver_ipi`, `spi_df_gold_ipi` | 8,379 |
+
+Dimensions are seeded by `spi_df_gold_dimensions`. Fact loads use
+delete-by-source then Append (ADR-010). Validated: Gold rows equal
+Silver rows, zero null keys, zero duplicate composite keys.
+
+**Deferred into Sprint 7** (need a pipeline around the dataflows):
+the `DELETE … WHERE source_key` step before each Gold dataflow, and
+logging for Silver and Gold dataflows. Until then the DELETE is run
+manually before each Gold refresh.
+
+**Sprint 5 (Bronze notebooks: Energy, Construction, Tax) — next.** Start
+after the S4-9 rehearsal and the trial-deadline replan.
 
 **Deferred into Sprint 5:** `spi_logging.py` (was S3-6). The module
 currently writes to a Lakehouse Delta table, which ADR-009 supersedes.
@@ -87,8 +101,8 @@ contradictions; do not resolve them.
 03-src/            Fabric productive code
   warehouse/       DDL and the logging helper module
   notebooks/       (empty — Sprint 5)
-  pipelines/       (empty — Sprint 4+)
-  dataflows/       (empty — Sprint 4+)
+  pipelines/       Bronze pipelines for IPC and IPI (exported JSON)
+  dataflows/       Silver, Gold and dimension dataflows (exported M)
   power-bi/        (empty — Sprint 7)
 99-private/        Gitignored. Source data, screenshots, personal journal
 ```
@@ -98,7 +112,14 @@ contradictions; do not resolve them.
 **Fabric items:** `spi_<type>_<layer>_<source>` — e.g.
 `spi_pl_bronze_ipc`, `spi_nb_bronze_energy`, `spi_bronze_ipc_raw`.
 The unsuffixed `spi_pl_bronze` is reserved for the master orchestration
-pipeline (Sprint 7).
+pipeline (Sprint 7). Dataflows: `spi_df_<layer>_<source>`, plus
+`spi_df_gold_dimensions`.
+
+**Dimension keys:** assigned explicitly in `spi_df_gold_dimensions`,
+never derived from source codes. `spi_dim_indicator` keys come from one
+sequence across all sources (IPC 1–14, IPI from 15); its natural key is
+`(indicator_category, domain)`. New indicator rows are added there, not
+by the Gold notebook.
 
 **Pipeline activities:** `cp_` Copy · `nb_` Notebook · `scr_` Script ·
 `lkp_` Lookup · `if_` If Condition · `fail_` Fail.
@@ -137,7 +158,12 @@ Warehouse (ADR-009).
 
 **Bronze stores every field as string.** Type casting happens in Silver
 where it can be validated and logged. Bronze rows carry
-`_ingestion_timestamp` and `_source_file`.
+`_ingestion_timestamp` plus `_source_file` (file sources) or
+`_source_table` (the Azure SQL source).
+
+**The fact table is shared by all five sources.** Never load it with
+Replace or truncate it: each source deletes only its own rows
+(`WHERE source_key = n`), then appends (ADR-010).
 
 ## Working agreement
 

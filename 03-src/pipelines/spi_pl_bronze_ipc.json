@@ -1,0 +1,226 @@
+{
+    "name": "spi_pl_bronze_ipc",
+    "objectId": "9795a868-245d-4922-a301-add0c9a12981",
+    "properties": {
+        "activities": [
+            {
+                "name": "cp_ipc",
+                "type": "Copy",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "source": {
+                        "type": "DelimitedTextSource",
+                        "additionalColumns": [
+                            {
+                                "name": "_ingestion_timestamp",
+                                "value": {
+                                    "value": "@utcnow()",
+                                    "type": "Expression"
+                                }
+                            },
+                            {
+                                "name": "_source_file",
+                                "value": "76136.csv"
+                            }
+                        ],
+                        "storeSettings": {
+                            "type": "HttpReadSettings",
+                            "requestMethod": "GET"
+                        },
+                        "formatSettings": {
+                            "type": "DelimitedTextReadSettings"
+                        },
+                        "datasetSettings": {
+                            "annotations": [],
+                            "type": "DelimitedText",
+                            "typeProperties": {
+                                "location": {
+                                    "type": "HttpServerLocation"
+                                },
+                                "columnDelimiter": ";",
+                                "encodingName": "ISO-8859-5",
+                                "escapeChar": "\\",
+                                "firstRowAsHeader": true,
+                                "quoteChar": "\""
+                            },
+                            "schema": [],
+                            "externalReferences": {
+                                "connection": "7c57fc1a-9505-493f-b37d-17cf6ccddb7a"
+                            }
+                        }
+                    },
+                    "sink": {
+                        "type": "LakehouseTableSink",
+                        "tableActionOption": "OverwriteSchema",
+                        "partitionOption": "None",
+                        "applyVOrder": false,
+                        "enableTimestampNtz": false,
+                        "datasetSettings": {
+                            "annotations": [],
+                            "linkedService": {
+                                "name": "spi_lakehouse",
+                                "properties": {
+                                    "annotations": [],
+                                    "type": "Lakehouse",
+                                    "typeProperties": {
+                                        "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2",
+                                        "artifactId": "c6048c3c-087e-4436-80fa-6013d1a04aeb",
+                                        "rootFolder": "Tables"
+                                    }
+                                }
+                            },
+                            "type": "LakehouseTable",
+                            "schema": [],
+                            "typeProperties": {
+                                "table": "spi_bronze_ipc_raw"
+                            }
+                        }
+                    },
+                    "enableStaging": false,
+                    "translator": {
+                        "type": "TabularTranslator",
+                        "mappings": [
+                            {
+                                "source": {
+                                    "name": "Comunidades y Ciudades Autónomas",
+                                    "type": "String",
+                                    "physicalType": "String"
+                                },
+                                "sink": {
+                                    "name": "comunidades_y_ciudades_autonomas",
+                                    "physicalType": "string"
+                                }
+                            },
+                            {
+                                "source": {
+                                    "name": "Grupos ECOICOP ver.2",
+                                    "type": "String",
+                                    "physicalType": "String"
+                                },
+                                "sink": {
+                                    "name": "grupos_ecoicop",
+                                    "physicalType": "string"
+                                }
+                            },
+                            {
+                                "source": {
+                                    "name": "Tipo de dato",
+                                    "type": "String",
+                                    "physicalType": "String"
+                                },
+                                "sink": {
+                                    "name": "tipo_de_dato",
+                                    "physicalType": "string"
+                                }
+                            },
+                            {
+                                "source": {
+                                    "name": "Periodo",
+                                    "type": "String",
+                                    "physicalType": "String"
+                                },
+                                "sink": {
+                                    "name": "periodo",
+                                    "physicalType": "string"
+                                }
+                            },
+                            {
+                                "source": {
+                                    "name": "Total",
+                                    "type": "String",
+                                    "physicalType": "String"
+                                },
+                                "sink": {
+                                    "name": "total",
+                                    "physicalType": "string"
+                                }
+                            },
+                            {
+                                "source": {
+                                    "name": "_ingestion_timestamp",
+                                    "type": "String"
+                                },
+                                "sink": {
+                                    "name": "_ingestion_timestamp",
+                                    "physicalType": "string"
+                                }
+                            },
+                            {
+                                "source": {
+                                    "name": "_source_file",
+                                    "type": "String"
+                                },
+                                "sink": {
+                                    "name": "_source_file",
+                                    "physicalType": "string"
+                                }
+                            }
+                        ],
+                        "typeConversion": true,
+                        "typeConversionSettings": {
+                            "allowDataTruncation": true,
+                            "treatBooleanAsNumber": false
+                        }
+                    }
+                }
+            },
+            {
+                "name": "scr_log_ipc",
+                "type": "Script",
+                "dependsOn": [
+                    {
+                        "activity": "cp_ipc",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "linkedService": {
+                    "name": "spi_warehouse",
+                    "properties": {
+                        "annotations": [],
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                        }
+                    }
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "Query",
+                            "text": {
+                                "value": "INSERT INTO dbo.spi_log_pipeline_execution\n    (run_id, pipeline_name, layer, source, status, start_time, end_time, error_message, rows_processed)\nVALUES\n    ('@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}',\n     'spi_pl_bronze',\n     'bronze',\n     'ipc',\n     '@{if(equals(activity('cp_ipc').Status, 'Succeeded'), 'success', 'failed')}',\n     '@{utcnow()}',\n     '@{utcnow()}',\n     @{if(equals(activity('cp_ipc').Status, 'Succeeded'), 'NULL', concat('''', replace(string(activity('cp_ipc').Error.message), '''', ''''''), ''''))},\n     @{if(equals(activity('cp_ipc').Status, 'Succeeded'), string(activity('cp_ipc').output.rowsCopied), 'NULL')});",
+                                "type": "Expression"
+                            }
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            }
+        ],
+        "parameters": {
+            "run_id": {
+                "type": "string"
+            }
+        },
+        "lastModifiedByObjectId": "570f0e39-66e1-4394-86cd-20e802978332",
+        "lastPublishTime": "2026-09-25T17:06:03Z"
+    }
+}

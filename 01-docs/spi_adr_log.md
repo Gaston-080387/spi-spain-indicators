@@ -669,3 +669,118 @@ after each Notebook activity, reading the notebook's exit value.
 
 Deferred to Sprint 5, where the first Bronze notebook provides a real
 consumer to design against.
+
+## ADR-010 — Gold load strategy for Dataflow sources: seeded dimensions, delete-by-source + append
+
+**Date:** 2026-09-28
+**Status:** Accepted
+
+### Context
+
+All five sources converge into a single fact table,
+`dbo.spi_fact_indicators`. IPC and IPI reach Gold through Dataflows
+Gen2 (`spi_df_gold_ipc`, `spi_df_gold_ipi`); the other three sources
+will reach it through a notebook in Sprint 6.
+
+Three platform facts shape the load design:
+
+- A Dataflow Gen2 destination offers only **Append** or **Replace**.
+  Replace truncates the entire destination table, not the rows the
+  dataflow produced.
+- Fabric Warehouse constraints are declared `NOT ENFORCED`. Nothing in
+  the Warehouse prevents duplicate rows on the fact's composite key.
+- Phase 4 §6.3 specifies Append without addressing reruns, and Phase 4
+  §6.1 specifies seeded dimensions without defining how keys are
+  resolved.
+
+### Decision
+
+**1. Fact load: delete this source's rows, then Append.**
+
+```sql
+DELETE FROM dbo.spi_fact_indicators WHERE source_key = <n>;
+```
+
+followed by the source's Gold dataflow in Append mode. Each source owns
+only its own rows. Reruns are idempotent, and a load of one source
+never touches another.
+
+**2. Dimensions are seeded, not derived from source data.**
+`spi_df_gold_dimensions` defines region, source and indicator rows as
+literal lists (Enter Data), and generates `spi_dim_calendar` in M from
+2000-01 to December of the current year. Keys are assigned explicitly,
+so rebuilding a dimension never changes an existing key.
+
+**3. Fact keys are resolved by lookup, never by parsing source codes.**
+Gold dataflows merge Silver against each dimension (Left outer) and take
+the surrogate key from the match. `calendar_key` is computed as
+`year * 100 + month`; `source_key` is a per-source constant.
+
+**4. Silver speaks the dimension vocabulary.** Mapping source labels to
+canonical dimension values (`13 Madrid, Comunidad de` → `Madrid`,
+`Total Nacional` → `Nacional`) is each source's Silver responsibility.
+Silver keeps source values otherwise intact; no codes are invented to
+support a lookup technique.
+
+**5. Indicator grain.** The natural key of `spi_dim_indicator` is
+`(indicator_category, domain)`. IPC keeps all 14 ECOICOP groups
+(`indicator_key` 1–14), not only the general index. IPI continues from
+key 15. Keys are drawn from a single sequence across all sources.
+
+### Rationale
+
+- **Replace rejected.** It truncates the whole shared table: running
+  any one source's Gold dataflow would erase all other sources.
+- **Append alone rejected.** Not idempotent. Every rerun duplicates the
+  source's rows, and the Warehouse will not stop it.
+- **MERGE rejected.** Not available as a Dataflow destination mode, and
+  unnecessary: each run reloads the source's full history, which also
+  picks up revisions INE publishes to previous months.
+- **Left outer join for lookups.** An unmatched value surfaces as a null
+  key that validation detects. An inner join would drop the row
+  silently. This caught a real defect: the hand-typed dimension row for
+  ECOICOP group 04 contained a double space and failed to match the
+  Silver value. INE's own label was correct.
+- **Keeping all ECOICOP groups.** The category breakdown is the main
+  analytical value of IPC (what drives inflation). The cost is modest:
+  14 dimension rows instead of 1, and no schema change.
+
+### Alternatives considered
+
+**Keep only `Índice general` for IPC.** Simpler grain, consistent with
+the single-series sources. Rejected: removes the most useful IPC
+analysis.
+
+**Derive keys from source codes** (the `13` in `13 Madrid, Comunidad
+de`). Rejected: some labels carry no code (`Índice general`,
+`Nacional`), it couples fact keys to one source's coding scheme, and
+failures are silent.
+
+### Consequences
+
+- **Deferred to Sprint 7.** The `DELETE … WHERE source_key` step and
+  Dataflow logging both require a pipeline around the dataflow. They
+  will be implemented as Script activities in `spi_pl_gold` and
+  `spi_pl_silver` (S7A-2, S7A-3). Until then, the DELETE is run
+  manually before each Gold refresh.
+- **Single owner of `spi_dim_indicator`.** Phase 4 §5 specifies
+  `upsert_indicator_dim()` inside the Gold notebook. That would create a
+  second writer for the dimension. Indicator rows for Energy,
+  Construction and Tax are added to `spi_df_gold_dimensions` instead;
+  the notebook only looks keys up. Revisit in Sprint 6.
+- Hand-typed dimension values are a defect surface of their own. Any
+  value that serves as a join key must be copied from the source data,
+  not retyped.
+- `spi_dim_calendar.is_current_year` is computed at refresh time and is
+  only correct after the dimension dataflow runs in the new year.
+- Supersedes Phase 4 §6.3 (Append without rerun handling) and Phase 4 §5
+  `upsert_indicator_dim()`.
+
+### Validation — 2026-09-28
+
+| Source | Fact rows | Silver rows | Null keys | Duplicate composite keys |
+|---|---|---|---|---|
+| IPC (1) | 12,390 | 12,390 | 0 | 0 |
+| IPI (2) | 8,379 | 8,379 | 0 | 0 |
+
+IPC: 3 regions × 14 ECOICOP groups × 295 months (2002-01 to 2026-07).
