@@ -32,8 +32,8 @@ Lakehouse and Warehouse created, Gold DDL and log table DDL executed,
 Azure SQL connection created and tested, PySpark primer and toy
 notebook completed, defense rehearsal passed.
 
-**Sprint 4 (IPC and IPI end-to-end via Dataflows Gen2) — data work
-complete 2026-09-28; defense rehearsal (S4-9) pending.**
+**Sprint 4 (IPC and IPI end-to-end via Dataflows Gen2) — closed
+2026-09-29.** Defense rehearsal (S4-9) passed.
 
 Both sources run Bronze → Silver → Gold:
 
@@ -52,7 +52,7 @@ logging for Silver and Gold dataflows. Until then the DELETE is run
 manually before each Gold refresh.
 
 **Sprint 5 (Bronze notebooks: Energy, Construction, Tax) — next.** Start
-after the S4-9 rehearsal and the trial-deadline replan.
+after the trial-deadline replan (trial expires ~2026-10-20).
 
 **Deferred into Sprint 5:** `spi_logging.py` (was S3-6). The module
 currently writes to a Lakehouse Delta table, which ADR-009 supersedes.

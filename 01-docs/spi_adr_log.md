@@ -784,3 +784,69 @@ failures are silent.
 | IPI (2) | 8,379 | 8,379 | 0 | 0 |
 
 IPC: 3 regions × 14 ECOICOP groups × 295 months (2002-01 to 2026-07).
+
+## ADR-011 — Single workspace: no separate PROD environment
+
+**Date:** 2026-09-29
+**Status:** Accepted
+
+### Context
+
+Phase 2 §10 and Phase 4 §2.3.2 and §12 specify two workspaces:
+`spi-spain-indicators-dev` (last 24 periods, active development) and
+`spi-spain-indicators-prod` (full history, portfolio surface), with
+artifacts promoted through a Fabric Deployment Pipeline and deployment
+rules per environment.
+
+The v1.1 replan (`phase5_dev_plan.md` §2.1) leaves ~84 h for an
+estimated 92–132 h of remaining work before the trial expires
+(~2026-10-20). Two further facts emerged during Sprint 4:
+
+- Every Dataflow Gen2 hardcodes the DEV `workspaceId` and
+  `lakehouseId` in its M code. Promotion would require confirming that
+  deployment rules can rebind them, or editing each dataflow in PROD.
+- The dataflows already load full history (IPC 2002–2026). The
+  `data_scope = last_24_periods` parameter that justified a lighter DEV
+  environment was never needed and is not implemented.
+
+### Decision
+
+Keep a single workspace, `spi-spain-indicators-dev`. At the end of
+development it is reassigned to a paid F capacity in North Europe,
+loaded with full history, and paused by default. No PROD workspace, no
+Deployment Pipeline, no deployment rules.
+
+The workspace keeps its current name. Renaming it would change the
+names referenced in pipeline JSON and documentation for no functional
+gain.
+
+### Rationale
+
+- **Saves ~8–10 h** (S8-1 to S8-4 of the v1.0 plan) inside a window
+  that no longer has buffer.
+- **Removes a risk instead of managing it.** Rebinding hardcoded
+  workspace and lakehouse IDs across environments is unverified; not
+  promoting means it never has to work.
+- **Portfolio value is unchanged.** A reviewer sees one working
+  environment with full history. The environment split demonstrated a
+  practice, but not a capability the portfolio depends on.
+
+### Alternatives considered
+
+**Keep DEV→PROD as specified.** Demonstrates Deployment Pipelines, a
+real enterprise practice. Rejected for the time cost and the unverified
+ID-rebinding risk, both concentrated in the final week before expiry.
+
+**Create PROD manually by rebuilding the items.** Rejected: duplicated
+effort with no promotion mechanism to show.
+
+### Consequences
+
+- **Supersedes** Phase 2 §10, Phase 4 §2.3.2 and Phase 4 §12, and the
+  `environment` and `data_scope` pipeline parameters of Phase 4 §7.6.
+- The `-dev` suffix on the workspace name no longer implies a PROD
+  counterpart. The README should say so.
+- Deployment Pipelines are not demonstrated. In a client engagement
+  they would be the default; this ADR is the answer when asked why.
+- The capacity move (S8-1, S8-2) must complete before trial expiry.
+  See the checkpoints in `phase5_dev_plan.md` §2.1.

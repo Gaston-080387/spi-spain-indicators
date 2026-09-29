@@ -3,8 +3,8 @@
 > **Document Type:** Living development plan. Internal working artifact.
 > **Scope:** Phase 4.5 (closure) → Phase 5 (Fabric development) → Phase 6 (publication).
 > **Target Duration:** 10 weeks (range: 9–13 weeks depending on dedication).
-> **Last Updated:** May 2026
-> **Version:** 1.0
+> **Last Updated:** 2026-09-29
+> **Version:** 1.1 — replanned against the trial deadline (see §2.1)
 
 ---
 
@@ -23,6 +23,8 @@ The development plan defined in this document is governed by three principles. E
 ### 1.2 Tooling
 
 Development uses AI-assisted code review (Claude) for static analysis, idiomatic refinement, scaffolding, and architecture validation. AI assistance is treated as a peer reviewer integrated into the workflow — accelerating iteration on naming, structure, and edge case coverage without substituting design ownership. This reflects current Analytics Engineering practice in 2026: AI tooling is a standard component of the development stack, not a deviation from it.
+
+**Revised September 2026 (v1.1).** From Sprint 3 onward, Claude Code is used as an implementation agent inside the repository, not only as a reviewer. The division of work is explicit: the author owns every design decision, reviews every change before it is committed, and records decisions in the ADR log; the agent implements decided changes, under standing instructions in `CLAUDE.md`. The guardrail is unchanged: the client defense test (§1.3). An artifact the author cannot explain line by line, without reference material, is not accepted, regardless of who typed it.
 
 ### 1.3 Quality bar
 
@@ -50,6 +52,41 @@ Every artifact in the repository must pass the **client defense test**: a freela
 **Trial budget validation.** Sprints 3 through 8 occupy approximately 31–44 calendar days within the 60-day trial window, providing comfortable margin against the deadline. Phase 6 publication occurs after the PROD environment has been migrated to F2 PAYG (paused state), removing trial expiry as a risk to portfolio availability.
 
 **Buffer policy.** Sprint slippage of up to 25% is anticipated and requires no recalibration. Slippage exceeding 50% triggers a scope or sequencing review before continuing.
+
+### 2.1 Replan — 2026-09-29
+
+**Trigger.** Sprints 3 and 4 took 20 and 19 calendar days against estimates of 3–4 and 5–7. Most of the overrun was platform friction (FTL4 capacity instead of F64, tenant settings, connection issues), now documented in `lessons-learned.md`. The buffer policy's 50% threshold was exceeded, so this review is mandatory.
+
+**Constraints.** Trial expires ~2026-10-20: 21 days. Available effort: ~4 h/day average, weekends included, ≈ 84 h. Remaining estimate for Sprints 5–8 in v1.0: 92–132 h.
+
+**Key fact.** Trial expiry is a cost event, not data loss. Fabric items become inactive, remain in OneLake for 7 days, and are reactivated by assigning the workspace to a paid F capacity. The real deadline is therefore: *a paid capacity in North Europe is ready before expiry*.
+
+**Scope changes.**
+
+| Change | Saving | Recorded in |
+|---|---|---|
+| Drop the separate PROD workspace and Deployment Pipeline; one workspace moves to paid capacity at the end | ~8–10 h | ADR-011 |
+| Power BI report: 4 core pages instead of 6; remaining pages post-trial | ~2–3 h | this plan |
+| Demonstration video and Sprint 9 move after the trial | ~4–6 h in-window | this plan |
+
+Not reduced: Sprint 6 transformation quality, and defense rehearsals (time-boxed to ~20 minutes).
+
+**Revised schedule.**
+
+| Dates | Budget | Scope |
+|---|---|---|
+| 30 Sep – 6 Oct | ~28 h | Sprint 5 — 3 Bronze notebooks; notebook logging mechanism (ADR-009 open item) |
+| 7 – 13 Oct | ~28 h | Sprint 6 — 3 Silver notebooks, Gold notebook |
+| 14 – 20 Oct | ~28 h | Sprint 7 — layer pipelines incl. Gold DELETE step and Dataflow logging (ADR-010), semantic model, 4-page report. Sprint 8 (reduced) — capacity move, full-history run, screenshots |
+| After 20 Oct | — | Remaining report pages, demonstration video, Sprint 9 |
+
+**Checkpoints.**
+
+- **6 Oct** — Sprint 5 closed? If it slips past 8 Oct, the paid-capacity path is assumed.
+- **13 Oct** — Sprint 6 closed? Decide whether Sprint 7 finishes on paid F4 pay-as-you-go (~$0.72/h while running, estimated $20–40) or scope is cut further.
+- **18 Oct** — begin the capacity move regardless of progress. The 7-day retention window is a safety net, not a plan.
+
+**Preconditions to verify early.** The paid capacity must be in North Europe (Warehouse connections do not work across regions). F2 has fewer Spark cores than FTL4: run one notebook on it before relying on it. Power BI publishing and viewing below F64 requires a Pro licence: confirm licence status before Sprint 7.
 
 ---
 
@@ -313,7 +350,7 @@ Each sprint specification below contains: objective, task list with effort estim
 | S7B-1 | Create Direct Lake semantic model on `spi_warehouse` | 1 | Model item |
 | S7B-2 | Configure relationships; mark date table per Phase 4 §11 | 1–2 | Model wired |
 | S7B-3 | Implement DAX measures per Phase 4 catalog | 3–5 | Measures operational |
-| S7B-4 | Build six-page report per Phase 3 specification | 4–6 | Report complete |
+| S7B-4 | Build four core report pages per Phase 3 specification (remaining two post-trial, §2.1) | 3–4 | Report complete |
 | S7B-5 | Save as PBIP for repository inclusion | 0.5 | PBIP exported |
 | S7B-6 | Defense rehearsal: full report walkthrough as stakeholder presentation | 1 | Sprint closed |
 
@@ -323,27 +360,24 @@ Each sprint specification below contains: objective, task list with effort estim
 
 ---
 
-### Sprint 8 — DEV→PROD deployment and portfolio capture
+### Sprint 8 — Capacity move and portfolio capture (reduced, v1.1)
 
-**Objective.** PROD workspace operational on F2 PAYG capacity (paused state). Portfolio assets — screenshots, demonstration video, exported artifacts — captured.
+**Objective.** The single workspace runs on paid capacity in North Europe (paused by default), loaded with full history. Screenshots captured. The separate PROD workspace and Deployment Pipeline are out of scope (ADR-011).
 
 **Tasks.**
 
 | ID | Task | Est. (h) | Output |
 |---|---|---|---|
-| S8-1 | Create `spi-spain-indicators-prod` workspace | 0.5 | PROD provisioned |
-| S8-2 | Configure Fabric Deployment Pipeline: DEV → PROD binding | 1 | Pipeline ready |
-| S8-3 | Configure deployment rules per Phase 4 §12.3 | 1 | Rules configured |
-| S8-4 | Trigger deployment; verify artifact propagation | 1 | PROD provisioned |
-| S8-5 | Execute `spi_pl_master` in PROD with `data_scope = full_history` | 2–3 | Full data resolved in PROD |
-| S8-6 | Capture curated screenshots per Phase 0 §7 (8–15 images: workspace, lakehouse, warehouse, notebooks, pipelines, dataflows, semantic model, report pages) | 2–3 | `/docs/screenshots/` populated |
-| S8-7 | Record demonstration video (Loom, 10–15 minutes, full E2E walkthrough) | 2–3 | Video URL captured |
-| S8-8 | Migrate PROD to F2 PAYG capacity (paused) — **before trial day 53** | 1 | Permanent portfolio surface |
-| S8-9 | Final smoke test in PROD on F2 PAYG capacity | 1 | Sprint closed |
+| S8-1 | Create F2 pay-as-you-go capacity in North Europe; verify one notebook runs on it | 1 | Capacity validated |
+| S8-2 | Reassign `spi-spain-indicators-dev` to the paid capacity — **before trial expiry** | 0.5 | Items active on paid capacity |
+| S8-3 | Execute `spi_pl_master` end-to-end with full history | 1–2 | Full data resolved |
+| S8-4 | Capture curated screenshots per Phase 0 §7 (8–15 images) | 2 | `/docs/screenshots/` populated |
+| S8-5 | Pause capacity; final smoke test on resume | 0.5 | Sprint closed |
+| S8-6 | Record demonstration video — **post-trial** | 2–3 | Video URL captured |
 
-**Definition of Done.** PROD environment operational on F2 PAYG (paused). Screenshots, demonstration video, and exportable artifacts all captured. Trial expiry no longer represents a risk to portfolio availability.
+**Definition of Done.** Workspace operational on paid capacity (paused), full history loaded, screenshots captured. Trial expiry no longer represents a risk to portfolio availability.
 
-**Risk.** Trial day 53 is a hard deadline for Sprint 8 closure. If sprint trajectory at the end of Sprint 7 indicates this date will not be met, deferrable polish items (additional report pages, optional documentation) are deprioritized to protect the deadline.
+**Risk.** If F2 cannot run the notebooks, use F4 pay-as-you-go for the full-history run, then scale down or pause.
 
 ---
 
@@ -404,9 +438,9 @@ This protocol is the single most important quality gate in the plan. It is the m
 |---|---|---|---|
 | Cross-tenant Azure SQL connection fails in Fabric | Medium | High (blocks IPI in Sprint 4) | Resolution path documented in Phase 4 §9. Buffer allocated in Sprint 3. If unresolved, IPI defers to mid-Sprint 4 without cascading impact. |
 | `xlrd` unavailable in Fabric Spark runtime | Medium | Medium (blocks Construction notebook) | Verified during Sprint 3 toy notebook. Fabric Environment installation per Phase 4 §3.7 is the resolution. |
-| Trial expiry before Sprint 8 closure | Low (under this plan) | Critical | Sprint 8 closure must occur before trial day 53. F2 PAYG migration is the irreversible safety gate. |
-| Sustained author productivity decrease (multi-week) | Medium | Medium | Buffer is built into estimates. Honest re-estimation and scope reduction are acceptable responses; compromising the working dynamic (delegating code production to AI assistance) is not. |
-| Power BI report scope creep | Medium | Low | Phase 3 specifies six pages; six pages are built. Polish iteration occurs post-publication. |
+| Trial expiry before Sprint 8 closure | High (v1.1) | High | Expiry deactivates items; OneLake keeps them 7 days. Mitigation: capacity move starts by 18 Oct regardless of progress (§2.1); paid F4 as a contingency from 13 Oct. |
+| Sustained author productivity decrease (multi-week) | Medium | Medium | Buffer is built into estimates. Honest re-estimation and scope reduction are acceptable responses. AI-assisted implementation is part of the working dynamic since v1.1 (§1.2); delegating design decisions, or accepting code the author cannot defend, is not. |
+| Power BI report scope creep | Medium | Low | Four core pages within the trial window (v1.1); the remaining two post-trial. Polish iteration occurs post-publication. |
 | Defense rehearsals deprioritized under time pressure | High | Critical | The rehearsal is the portfolio differentiator. It is non-optional regardless of schedule pressure. |
 | Perfectionism on README delays Sprint 9 closure | Medium | Low | README time-boxed at 6 hours for v1; polish iteration occurs after publication. |
 
@@ -419,7 +453,7 @@ The project is considered complete when **all** of the following conditions are 
 - [ ] `spi-spain-indicators` GitHub repository is public and organized per Phase 0 §9.
 - [ ] All Fabric components (Lakehouse, Pipelines, Notebooks, Dataflows Gen2, Warehouse, Power BI) are present and used where architecturally appropriate.
 - [ ] All five sources resolve into `spi_fact_indicators` end-to-end via a single pipeline trigger.
-- [ ] PROD environment runs on F2 PAYG capacity (paused) and is available for live demonstration.
+- [ ] The workspace runs on paid capacity (paused) and is available for live demonstration (single workspace, ADR-011).
 - [ ] The main README answers project purpose, problem, approach, outcome, and author within 60 seconds of reading.
 - [ ] Demonstration video (10–15 minutes) is embedded in the README.
 - [ ] Curated screenshots (8–15 images) populate `/docs/screenshots/`.
@@ -444,3 +478,4 @@ The plan defined in this document is engineered to produce that outcome.
 | Version | Date | Notes |
 |---|---|---|
 | 1.0 | May 2026 | Initial plan. Authored prior to Sprint 0 kickoff. Living document — sprint outcomes update Sections 3, 4, 5 in place. Estimate revisions are recorded with explicit notes. |
+| 1.1 | 2026-09-29 | Replan after Sprints 3–4 exceeded estimates (§2.1). PROD workspace dropped (ADR-011); report reduced to 4 core pages in-window; video and Sprint 9 moved post-trial; Sprint 8 rewritten; §1.2 records Claude Code as implementation agent. |
