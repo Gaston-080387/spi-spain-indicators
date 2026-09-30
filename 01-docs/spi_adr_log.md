@@ -32,6 +32,9 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 007 | Bronze ingestion orchestation | Accepted | Bronze pipeline |
 | 008 | Warehouse collation: case-insensitive  | Accepted | Gold layer |
 | 009 | Logging: target, write mechanisms and status model | Accepted | Infraestructure |
+| 010 | Gold load strategy for Dataflow sources: seeded dimensions, delete-by-source + append | Accepted | Gold fact load, Sprint 7 pipeline |
+| 011 | Single workspace: no separate PROD environment | Accepted | Environment strategy |
+| 012 | Bronze notebooks on the Fabric Python runtime | Accepted | Bronze notebooks, Sprint 5 |
 
 ---
 
@@ -670,6 +673,53 @@ after each Notebook activity, reading the notebook's exit value.
 Deferred to Sprint 5, where the first Bronze notebook provides a real
 consumer to design against.
 
+### Addendum — 2026-09-30: notebook logging resolved
+
+**Decision.** Notebooks do not write log rows. Each Notebook activity is
+followed by a Script activity, chained **On completion**, that writes
+the log row with T-SQL. This is the same mechanism the Copy Activities
+already use.
+
+**Status model — now uniform single-phase.** The two-phase model for
+notebooks (2026-08-28 amendment) existed because a notebook cannot
+record its own hard termination. An external observer can: if the
+session dies, the Notebook activity reports `Failed`, and the Script
+activity still runs and records it. The `running` row is no longer
+needed. All components log one row, after completion.
+
+**Notebook contract.**
+
+| Outcome | Notebook behaviour | Script activity reads |
+|---|---|---|
+| Success | `notebookutils.notebook.exit(json.dumps({...}))` with `rows_written` | `activity('nb_…').output.result.exitValue` |
+| Failure | Raises. Never catches and exits cleanly | `activity('nb_…').Status`, `activity('nb_…').error.message` |
+
+`notebookutils.notebook.exit()` is called outside any `try/except`,
+because a broad `except Exception` can swallow it.
+
+**Alternatives rejected.**
+
+- **`synapsesql()`.** It appends DataFrames through staging plus COPY
+  INTO. It cannot UPDATE, so it cannot implement the status model, and
+  it pays the staging cost for a single row. It also requires a Spark
+  session (see ADR-012).
+- **Notebook self-logging through a direct SQL connection.** It is
+  functional in principle, but it adds a second write path with
+  unverified authentication under pipeline execution, while the Script
+  path is already proven in Sprint 4.
+
+**Consequences.**
+
+- One log write mechanism for every component: Copy Activities,
+  notebooks, and the Dataflows from Sprint 7 (ADR-010).
+- `spi_logging.py` has no consumer. It is retired in a separate change.
+- Interactive notebook runs do not log. This is intended: the log table
+  records orchestrated runs.
+- The gate's rule "treat `running` as failure" becomes unreachable, but
+  it is kept as a defensive check.
+- Supersedes the notebook row of the original decision table and the
+  2026-08-28 asymmetric model.
+
 ## ADR-010 — Gold load strategy for Dataflow sources: seeded dimensions, delete-by-source + append
 
 **Date:** 2026-09-28
@@ -850,3 +900,60 @@ effort with no promotion mechanism to show.
   they would be the default; this ADR is the answer when asked why.
 - The capacity move (S8-1, S8-2) must complete before trial expiry.
   See the checkpoints in `phase5_dev_plan.md` §2.1.
+
+## ADR-012 — Bronze notebooks on the Fabric Python runtime
+
+**Date:** 2026-09-30
+**Status:** Accepted
+
+### Context
+
+Fabric notebooks run on one of two runtimes. **PySpark** starts a Spark
+session. **Python** runs a single-node container with pandas and no
+Spark.
+
+ADR-007 and Phase 2 specify the three Bronze notebooks as
+"Notebook (Python)". `phase5_dev_plan.md` §3 (Sprint 5) describes them
+as "PySpark in place of pandas". The two documents disagree.
+
+The Bronze inputs are small: one REST API, four legacy XLS files, and
+one XLSX. The local validation scripts (ADR-001) are pandas. A Spark
+session takes the full FTL4 allocation (4 CU) for its whole lifetime
+(ADR-007 addendum, 2026-08-26).
+
+### Decision
+
+The three Bronze notebooks (`spi_nb_bronze_energy`,
+`spi_nb_bronze_construction`, `spi_nb_bronze_tax`) run on the **Python**
+runtime. They use pandas, and they write Delta tables with the
+`deltalake` library. The runtime for the Silver and Gold notebooks is
+decided in Sprint 6.
+
+### Rationale
+
+- **Right-sized compute.** Spark is for distributed workloads. These
+  inputs fit in memory by orders of magnitude.
+- **No contention for the Spark ceiling.** The Bronze chain does not
+  hold the 4 CU that a Spark session takes.
+- **A near 1:1 port.** The only runtime change is the write: Parquet
+  becomes Delta. The ADR-001 reconciliation becomes pandas against
+  pandas, which is stricter than planned.
+- **Consistent with ADR-007**, which already specified Python.
+
+### Alternatives considered
+
+**PySpark, as in the dev plan.** Rejected. It requires rewriting proven
+pandas logic in a second API, and it pays the full session cost for no
+benefit at this volume.
+
+### Consequences
+
+- Supersedes the "PySpark in place of pandas" wording in
+  `phase5_dev_plan.md` §3 (Sprint 5).
+- The High Concurrency question (whether notebooks share one Spark
+  session) no longer applies to Bronze.
+- **Unverified until the first run of `spi_nb_bronze_energy`:** the
+  Delta write path from the Python runtime, and its CU consumption.
+  Record both as an addendum.
+- The availability of `xlrd` and `openpyxl` in the Python runtime is
+  verified per notebook, at its first run.

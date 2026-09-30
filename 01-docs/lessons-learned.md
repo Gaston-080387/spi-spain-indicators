@@ -103,6 +103,30 @@ and issues COPY INTO.
 
 ---
 
+## Python notebooks
+
+- `write_deltalake` against the mounted path
+  `/lakehouse/default/Tables/<table>` fails with
+  `Unable to rename file — Operation not permitted (os error 1)`. The
+  mounted path does not support the rename a Delta commit needs.
+- Fix: write to the OneLake `abfss://` URL directly, with a bearer token
+  from `notebookutils.credentials.getToken("storage")` and
+  `use_fabric_endpoint` set:
+
+  ```python
+  table_uri = (
+      "abfss://<workspace-id>@onelake.dfs.fabric.microsoft.com/"
+      "<lakehouse-id>/Tables/<table>"
+  )
+  storage_options = {
+      "bearer_token": notebookutils.credentials.getToken("storage"),
+      "use_fabric_endpoint": "true",
+  }
+  write_deltalake(table_uri, df, mode="overwrite", storage_options=storage_options)
+  ```
+
+---
+
 ## Authentication and connections
 
 - Fabric's connection type for Azure SQL Database is **SQL Server** —
