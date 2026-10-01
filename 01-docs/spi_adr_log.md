@@ -720,6 +720,20 @@ because a broad `except Exception` can swallow it.
 - Supersedes the notebook row of the original decision table and the
   2026-08-28 asymmetric model.
 
+### Validation — 2026-09-30
+
+`spi_pl_bronze_energy`, run standalone.
+
+| Run | Notebook activity | Script activity | Pipeline | Log `status` | `rows_processed` | `error_message` |
+|---|---|---|---|---|---|---|
+| Success | Succeeded | Succeeded | Succeeded | `success` | 457 | NULL |
+| Failure (`START_YEAR = 'abc'`) | Failed | Succeeded | Failed | `failed` | NULL | Contains the `TypeError` |
+
+The failure was forced with a base parameter of the wrong type (see
+`lessons-learned.md`, Data Pipelines). In both runs the Script activity
+ran On completion and recorded the outcome — the behaviour the
+2026-09-30 addendum depends on.
+
 ## ADR-010 — Gold load strategy for Dataflow sources: seeded dimensions, delete-by-source + append
 
 **Date:** 2026-09-28
@@ -957,3 +971,28 @@ benefit at this volume.
   Record both as an addendum.
 - The availability of `xlrd` and `openpyxl` in the Python runtime is
   verified per notebook, at its first run.
+
+### Addendum — 2026-10-01: verified at first run
+
+The two points the Consequences left unverified until the first run of
+`spi_nb_bronze_energy` are now resolved.
+
+**Delta write path.** Delta write from the Python runtime works, but
+not through the mounted path `/lakehouse/default/Tables/...`, which
+fails because the mount does not support the rename a Delta commit
+needs. It works through the OneLake `abfss://` URL with a bearer token
+(see `lessons-learned.md`, Python notebooks).
+
+**CU consumption.** Measured in the Capacity Metrics app (14-day item
+view): `spi_nb_bronze_energy` consumed 1,410 CU-s over 996 s of
+runtime, aggregated across all runs on 2026-09-30. That is ≈1.4 CU/s,
+against 4.0 CU/s for a Spark session (ADR-007 addendum, 2026-08-26).
+The figure includes interactive development runs and the forced-failure
+run; per-run attribution was not isolated. The rate (CU per second of
+runtime), not the total, is the comparable figure. Rationale confirmed.
+
+**Libraries.** The REE notebook needed no extra libraries. `xlrd` and
+`openpyxl` are still to be verified with the Construction and Tax
+notebooks.
+
+Decision unchanged.

@@ -64,6 +64,11 @@ Findings are recorded here. *Decisions* are recorded in
 - A child pipeline invoked from a parent receives its own `RunId`, not
   the parent's. Correlation across a run requires passing the parent's
   ID explicitly as a parameter.
+- The Notebook activity timeout has a minimum of 10 minutes (format
+  `D.HH:MM:SS`), so a short timeout cannot be used to force a failure.
+- To test a failure path without changing code, pass a base parameter
+  of the wrong type (e.g. a String where the notebook expects an int).
+  The notebook fails in seconds, before any write.
 
 ---
 
