@@ -206,7 +206,7 @@
                         {
                             "type": "Query",
                             "text": {
-                                "value": "INSERT INTO dbo.spi_log_pipeline_execution\n    (run_id, pipeline_name, layer, source, status, start_time, end_time, error_message, rows_processed)\nVALUES\n    ('@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}',\n     'spi_pl_bronze',\n     'bronze',\n     'ipc',\n     '@{if(equals(activity('cp_ipc').Status, 'Succeeded'), 'success', 'failed')}',\n     '@{utcnow()}',\n     '@{utcnow()}',\n     @{if(equals(activity('cp_ipc').Status, 'Succeeded'), 'NULL', concat('''', replace(string(activity('cp_ipc').Error.message), '''', ''''''), ''''))},\n     @{if(equals(activity('cp_ipc').Status, 'Succeeded'), string(activity('cp_ipc').output.rowsCopied), 'NULL')});",
+                                "value": "INSERT INTO dbo.spi_log_pipeline_execution\n    (run_id, pipeline_name, layer, source, status, start_time, end_time, error_message, rows_processed)\nVALUES\n    ('@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}',\n     'spi_pl_bronze_ipc',\n     'bronze',\n     'ipc',\n     '@{if(equals(activity('cp_ipc').Status, 'Succeeded'), 'success', 'failed')}',\n     '@{utcnow()}',\n     '@{utcnow()}',\n     @{if(equals(activity('cp_ipc').Status, 'Succeeded'), 'NULL', concat('''', replace(string(activity('cp_ipc').Error.message), '''', ''''''), ''''))},\n     @{if(equals(activity('cp_ipc').Status, 'Succeeded'), string(activity('cp_ipc').output.rowsCopied), 'NULL')});",
                                 "type": "Expression"
                             }
                         }
@@ -221,6 +221,6 @@
             }
         },
         "lastModifiedByObjectId": "570f0e39-66e1-4394-86cd-20e802978332",
-        "lastPublishTime": "2026-09-25T17:06:03Z"
+        "lastPublishTime": "2026-09-30T20:16:50Z"
     }
 }
