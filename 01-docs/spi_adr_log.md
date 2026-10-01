@@ -35,6 +35,7 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 010 | Gold load strategy for Dataflow sources: seeded dimensions, delete-by-source + append | Accepted | Gold fact load, Sprint 7 pipeline |
 | 011 | Single workspace: no separate PROD environment | Accepted | Environment strategy |
 | 012 | Bronze notebooks on the Fabric Python runtime | Accepted | Bronze notebooks, Sprint 5 |
+| 013 | Construction Bronze stores the raw XLS grid | Accepted | Construction Bronze notebook, Sprint 6 Silver |
 
 ---
 
@@ -996,3 +997,92 @@ runtime), not the total, is the comparable figure. Rationale confirmed.
 notebooks.
 
 Decision unchanged.
+
+### Addendum — 2026-10-01: xlrd
+
+`xlrd` is not included in the Fabric Python runtime (`ModuleNotFoundError`).
+It is installed with an inline `%pip install xlrd==2.0.1` in the first code
+cell of `spi_nb_bronze_construction`. This works in both interactive and
+pipeline runs (verified with `spi_pl_bronze_construction`). No Fabric
+Environment is needed. `openpyxl` is still to be verified with the Tax
+notebook.
+
+## ADR-013 — Construction Bronze stores the raw XLS grid
+
+**Date:** 2026-10-01
+**Status:** Accepted
+
+### Context
+
+Phase 3 defines `spi_bronze_construction_raw` in long format: one row
+per value, with `region_name`, `period_raw`, `indicator_category` and
+`indicator_value_raw` already derived. That design puts the parsing of
+the XLS layout (header rows, region blocks, period labels) inside the
+Bronze notebook.
+
+The local validation script `cons_bronze_load.py` (Sprint 2, ADR-001)
+does not do this. It stores each sheet as received: every cell as a
+string, in positional columns `col_01` … `col_NN`, plus lineage columns.
+
+Inspection of the four source files shows that the layout is not
+uniform:
+
+| File | Rows | Columns | Grid offset |
+|---|---|---|---|
+| `01401400.XLS` | 243 | 12 | none |
+| `01401600.XLS` | 244 | 14 | shifted one row down and one column right |
+| `01402600.XLS` | 243 | 12 | none |
+| `01402800.XLS` | 243 | 13 | none |
+
+No file has merged cells (`merged_cells` is empty in all four).
+
+### Decision
+
+Bronze follows the local script. `spi_bronze_construction_raw` holds
+the raw grid of all four files, appended into one table. Missing
+positional columns are null. Parsing the layout into long format moves
+to the Silver notebook (Sprint 6).
+
+### Rationale
+
+- **Bronze is data as received.** A layout parser is business logic.
+  If MITMA changes the layout, a raw Bronze keeps loading, and only
+  Silver needs fixing. The raw data is never lost.
+- **The offset file proves the point.** `01401600.XLS` differs from the
+  other three. Handling that is a transformation rule, and it belongs
+  with the other transformation rules in Silver.
+- **Consistent with ADR-001.** The local script is the Bronze
+  implementation; its output is the reconciliation baseline.
+
+### Alternatives considered
+
+**Long format in Bronze, as in Phase 3.** Rejected. It mixes parsing
+logic into ingestion, and a layout change would stop Bronze loading
+entirely.
+
+### Consequences
+
+- Supersedes the Bronze column list of Phase 3 (Source 4) and the
+  `parse_xls_sheet()` / `derive_metadata()` scope of Phase 4 §5.3.
+- Sprint 6 Silver takes on the layout parsing: header rows, region
+  blocks, period labels, the per-file offset, and subtotal rows.
+- Phase 3's assumption of merged cells does not hold for the current
+  files. No forward-fill is needed.
+
+### Validation — 2026-10-01
+
+| File | Rows (Fabric) | Rows (Sprint 2 baseline) | Columns |
+|---|---|---|---|
+| `01401400.XLS` | 247 | 243 | 12 |
+| `01401600.XLS` | 248 | 244 | 14 |
+| `01402600.XLS` | 247 | 243 | 12 |
+| `01402800.XLS` | 247 | 243 | 13 |
+| **Total** | **989** | **973** | |
+
+Each file has exactly 4 more rows than the baseline, because MITMA has
+published new data since Sprint 2. Column counts match. Missing positional
+columns are real nulls, not the text `"nan"`, verified with `COUNT(col_13)`
+and `COUNT(col_14)` per file. Pipeline log row: `success`, 989.
+
+The year label is sparse, so Silver still needs a forward-fill for it. This
+is unrelated to merged cells.

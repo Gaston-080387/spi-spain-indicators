@@ -134,6 +134,9 @@ and issues COPY INTO.
   succeeded (the output shows `ExitValue: …`). In a pipeline run, the
   Notebook activity reports Succeeded and passes the value to the next
   activity. The ✗ is expected and is not an error.
+- `xlrd` is not in the Python runtime (`ModuleNotFoundError`). An inline
+  `%pip install xlrd==2.0.1` in the notebook works, including in pipeline
+  runs. No Fabric Environment is needed.
 
 ---
 
@@ -242,3 +245,11 @@ and issues COPY INTO.
 
 Verify encoding per file rather than assuming an institution-wide
 convention.
+
+### Construction (MITMA)
+
+- `-` means no value. Silver must convert it to null.
+- The year appears only on the first month row of each block. Silver
+  must forward-fill it.
+- `01401600.XLS` is offset by one row and one column relative to the
+  other three files (ADR-013).
