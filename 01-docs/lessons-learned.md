@@ -129,6 +129,11 @@ and issues COPY INTO.
   }
   write_deltalake(table_uri, df, mode="overwrite", storage_options=storage_options)
   ```
+- `notebookutils.notebook.exit()` stops the notebook on purpose. In an
+  interactive run, Fabric marks the exit cell with ✗ even though the exit
+  succeeded (the output shows `ExitValue: …`). In a pipeline run, the
+  Notebook activity reports Succeeded and passes the value to the next
+  activity. The ✗ is expected and is not an error.
 
 ---
 
