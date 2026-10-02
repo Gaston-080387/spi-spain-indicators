@@ -1007,6 +1007,11 @@ pipeline runs (verified with `spi_pl_bronze_construction`). No Fabric
 Environment is needed. `openpyxl` is still to be verified with the Tax
 notebook.
 
+CU measured in the Capacity Metrics app: `spi_nb_bronze_construction`
+consumed 525 CU-s over 382 s of runtime (14-day item view, including the
+failed first run and interactive runs). That is ≈1.4 CU/s, the same rate
+as `spi_nb_bronze_energy`.
+
 ## ADR-013 — Construction Bronze stores the raw XLS grid
 
 **Date:** 2026-10-01
