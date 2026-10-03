@@ -73,6 +73,16 @@ the Bronze definition.
   not edited. `[TBC: align the repository README / dev-plan summary to "Bronze extraction
   baseline" at its next revision.]`
 
+**Addendum — 2026-10-03: Reconciliation results.**
+- **Energy (2026-09-30).** 457 rows in Fabric against 448 locally. All 36 region-year
+  groups from 2014 to 2025 match exactly on row count and value sum. 2026 has more months
+  in Fabric (local Parquet ingested 2026-06-20).
+- **Construction.** See ADR-013, validation 2026-10-01 (+4 rows per file).
+- **Tax.** See ADR-013, validation 2026-10-03 (+3 months).
+
+**Conclusion.** The local baselines are older than the live sources, so reconciliation
+compares structure and overlapping periods, not total row counts.
+
 ---
 
 ## ADR-002 — Derived measures as DAX time-intelligence, not materialized fact rows
@@ -1012,6 +1022,17 @@ consumed 525 CU-s over 382 s of runtime (14-day item view, including the
 failed first run and interactive runs). That is ≈1.4 CU/s, the same rate
 as `spi_nb_bronze_energy`.
 
+### Addendum — 2026-10-03: openpyxl
+
+`openpyxl` is included in the Fabric Python runtime. `spi_nb_bronze_tax`
+imported it at its first run with no `%pip install`.
+
+All library checks listed in the Consequences are now closed: the REE
+notebook needed no extra libraries, `xlrd` needs an inline `%pip`
+(2026-10-01 addendum), and `openpyxl` needs nothing.
+
+Decision unchanged.
+
 ## ADR-013 — Construction Bronze stores the raw XLS grid
 
 **Date:** 2026-10-01
@@ -1091,3 +1112,65 @@ and `COUNT(col_14)` per file. Pipeline log row: `success`, 989.
 
 The year label is sparse, so Silver still needs a forward-fill for it. This
 is unrelated to merged cells.
+
+### Addendum — 2026-10-03: same approach for Tax
+
+Phase 3 (Source 5) and Phase 4 §5.4 specify `spi_bronze_tax_raw` with
+column names taken from the sheet's header row. The local validation
+script `tax_bronze_load.py` does not do this: like Construction, it
+stores positional columns `col_01` … `col_76`, and the header row is
+kept as the first data row.
+
+**Decision.** Tax follows the local script, as Construction does.
+
+**Rationale.**
+
+- **The header names are not valid column names as they are.** They
+  contain spaces, dots, parentheses and accents (`D.E. Andalucía`,
+  `Servicios Centrales (Participación CC.AA.)`). Delta tables without
+  column mapping reject spaces and parentheses in column names. Using
+  them would mean renaming them in Bronze, which is a transformation.
+- **Nothing is lost.** The header row is stored as received, as the
+  first row. Silver reads the column meanings from it.
+- **One Bronze pattern for both spreadsheet sources.** Both store raw
+  positional string columns plus lineage. Layout logic lives in Silver.
+
+**Inspection of the source (local copy, 2026-10-03).**
+
+| Item | Value |
+|---|---|
+| Workbook | 6 sheets, ~10.6 MB (Phase 3 estimated ~6 MB) |
+| Sheet in scope | `datos_delegaciones` |
+| Columns | 76: `Ejercicio`, `Mes`, `Concepto`, `Total`, then 72 offices |
+| Data rows | 10,485 = 45 concepts × 233 months (2007-01 to 2026-05) |
+| Trailing empty rows | 1,127 (the sheet's used range is larger than the data) |
+| Total rows read | 11,613 (header + data + empty) |
+
+**Consequences.**
+
+- Supersedes "Column names from the sheet header row" in Phase 3
+  (Source 5) and the `to_dataframe()` description in Phase 4 §5.4.
+- Silver Tax takes on: promoting the header row, dropping the trailing
+  empty rows, selecting the `Total`, `D.E. Madrid` and `D.E. Cataluña`
+  columns, and the unpivot.
+- Reconciliation rule for future loads: data rows = 45 × number of
+  months. It stays valid as AEAT publishes new months.
+
+### Validation — 2026-10-03 (Tax)
+
+Fabric loaded 11,613 rows and 78 columns (76 positional plus 2 lineage)
+into `spi_bronze_tax_raw`. A structural query returned:
+
+| Item | Fabric (2026-10-03) | Local copy (2026-10-03 addendum) |
+|---|---|---|
+| Header rows | 1 | 1 |
+| Months | 236 (2007-01 to 2026-08) | 233 (2007-01 to 2026-05) |
+| Concepts | 45 | 45 |
+| Data rows | 10,620 = 236 × 45 | 10,485 = 233 × 45 |
+| Empty rows | 992 | 1,127 |
+| **Total rows** | **11,613** | **11,613** |
+
+AEAT has published three more months since the local copy. New months
+fill the sheet's trailing empty rows, so the total row count stays the
+same. The valid check for Tax is data rows = 45 × months, not the
+total. Pipeline log row: `success`, 11613.

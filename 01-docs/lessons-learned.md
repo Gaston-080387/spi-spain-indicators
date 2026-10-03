@@ -137,6 +137,8 @@ and issues COPY INTO.
 - `xlrd` is not in the Python runtime (`ModuleNotFoundError`). An inline
   `%pip install xlrd==2.0.1` in the notebook works, including in pipeline
   runs. No Fabric Environment is needed.
+- `openpyxl` is included in the Python runtime (unlike `xlrd`). No
+  `%pip install` is needed.
 
 ---
 
@@ -200,6 +202,11 @@ and issues COPY INTO.
 
 ## Source data
 
+- The local validation files (Sprints 1–2) are older than the live
+  sources. All three notebook sources had more periods in Fabric than
+  locally. Reconcile local against Fabric by structure (columns, layout,
+  row arithmetic), not by row counts (ADR-001, 2026-10-03 addendum).
+
 ### IPC (INE)
 
 - Bronze row count 331,520 against the ~50,000 estimated in Phase 1 §3.
@@ -253,3 +260,12 @@ convention.
   must forward-fill it.
 - `01401600.XLS` is offset by one row and one column relative to the
   other three files (ADR-013).
+
+### Tax (AEAT)
+
+- The sheet `datos_delegaciones` has a fixed used range. New months
+  replace trailing empty rows, so the total row count does not change
+  until the trailing empty rows run out (~22 months at 45 rows per
+  month). See ADR-013, 2026-10-03 validation.
+- Blank cells arrive as `''`, not null. Construction also has real nulls
+  (missing columns). Silver must treat both `''` and NULL as empty.
