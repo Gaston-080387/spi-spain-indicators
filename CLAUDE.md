@@ -51,18 +51,19 @@ the `DELETE … WHERE source_key` step before each Gold dataflow, and
 logging for Silver and Gold dataflows. Until then the DELETE is run
 manually before each Gold refresh.
 
-**Sprint 5 (Bronze notebooks: Energy, Construction, Tax) — next.** Start
-after the trial-deadline replan (trial expires ~2026-10-20).
+**Sprint 5 (Bronze notebooks: Energy, Construction, Tax) — closed
+2026-10-03.** Three Bronze notebooks and pipelines
+(`spi_nb_bronze_energy` / `_construction` / `_tax`,
+`spi_pl_bronze_energy` / `_construction` / `_tax`) on the Fabric Python
+runtime (ADR-012). Logging by Script activities in the pipelines
+(ADR-009). Positional Bronze for the spreadsheet sources (ADR-013).
 
-**Deferred into Sprint 5:** `spi_logging.py` (was S3-6). The module
-currently writes to a Lakehouse Delta table, which ADR-009 supersedes.
-Its replacement mechanism is unresolved — see the 2026-09-09 addendum
-to ADR-009. It has no consumer until the first Bronze notebook, so it
-is written there rather than speculatively.
+**Sprint 6 (Silver and Gold notebooks) — next.** Three Silver notebooks
+(Energy, Construction, Tax) and the Gold notebook `spi_nb_gold_load`,
+7–13 October (`phase5_dev_plan.md` §2.1). Trial expires ~2026-10-20;
+checkpoint 13 October.
 
 **Unverified assumptions** worth checking before relying on them:
-- Whether High Concurrency actually lets the three Bronze notebooks
-  share one Spark session.
 - Whether Direct Lake requires the Large semantic model storage format
   (workspace is currently set to Small).
 
@@ -99,9 +100,9 @@ contradictions; do not resolve them.
 01-docs/           Frozen phase deliverables, ADR log, dev plan, lessons learned
 02-prerequisites/  One-time local Python bootstrap scripts (Phase 4.5 validation)
 03-src/            Fabric productive code
-  warehouse/       DDL and the logging helper module
-  notebooks/       (empty — Sprint 5)
-  pipelines/       Bronze pipelines for IPC and IPI (exported JSON)
+  warehouse/       DDL
+  notebooks/       Bronze notebooks for Energy, Construction and Tax
+  pipelines/       Bronze pipelines for all five sources (exported JSON)
   dataflows/       Silver, Gold and dimension dataflows (exported M)
   power-bi/        (empty — Sprint 7)
 99-private/        Gitignored. Source data, screenshots, personal journal
@@ -155,6 +156,11 @@ is instantaneous concurrency, not volume.
 **Lakehouse SQL analytics endpoint is read-only.** T-SQL cannot INSERT
 into Lakehouse Delta tables. This is why the log table lives in the
 Warehouse (ADR-009).
+
+**Bronze notebooks write Delta through the OneLake `abfss://` URL**,
+not `/lakehouse/default/Tables/`. The mounted path does not support the
+file rename a Delta commit needs, so the write fails with
+`Operation not permitted`. See `lessons-learned.md`, "Python notebooks".
 
 **Bronze stores every field as string.** Type casting happens in Silver
 where it can be validated and logged. Bronze rows carry

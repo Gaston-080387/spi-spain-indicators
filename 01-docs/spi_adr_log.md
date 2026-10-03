@@ -1174,3 +1174,27 @@ AEAT has published three more months since the local copy. New months
 fill the sheet's trailing empty rows, so the total row count stays the
 same. The valid check for Tax is data rows = 45 × months, not the
 total. Pipeline log row: `success`, 11613.
+
+### Addendum — 2026-10-03: Schema changes
+
+The Rationale above states that if MITMA changes the layout, "a raw
+Bronze keeps loading". This needs refining. Two kinds of layout change
+behave differently:
+
+- **Same number of columns** (rows shifted, columns reordered, labels
+  changed). Bronze absorbs it: every cell is a string in a positional
+  column, so the write succeeds. Silver must catch it, because the
+  positions no longer mean what Silver expects.
+- **Different number of columns.** `write_deltalake(mode="overwrite")`
+  fails. Overwrite refuses a schema change unless
+  `schema_mode="overwrite"` is set, and the Bronze notebooks do not set
+  it. This is the expected behaviour of the `deltalake` library; it has
+  not yet been tested here.
+
+This is intended. The load fails loudly instead of landing a different
+shape. `schema_mode="overwrite"` is deliberately not set.
+
+For Construction, the table width is that of the widest of the four
+files (currently 14, from `01401600.XLS`). A change in a narrower file's
+column count only changes how many columns are null; it does not change
+the table schema and does not fail the load.
