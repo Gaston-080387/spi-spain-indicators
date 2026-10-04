@@ -36,6 +36,7 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 011 | Single workspace: no separate PROD environment | Accepted | Environment strategy |
 | 012 | Bronze notebooks on the Fabric Python runtime | Accepted | Bronze notebooks, Sprint 5 |
 | 013 | Construction Bronze stores the raw XLS grid | Accepted | Construction Bronze notebook, Sprint 6 Silver |
+| 014 | Gold load for Energy, Construction and Tax as a T-SQL stored procedure | Accepted | Gold fact load, Sprint 6 |
 
 ---
 
@@ -860,6 +861,15 @@ failures are silent.
 
 IPC: 3 regions × 14 ECOICOP groups × 295 months (2002-01 to 2026-07).
 
+### Addendum — 2026-10-04: indicator ownership resolved
+
+The Sprint 6 revisit in the Consequences is closed by ADR-014.
+`spi_df_gold_dimensions` remains the single owner of
+`spi_dim_indicator`. `dbo.spi_sp_gold_load` only resolves keys by
+`LEFT JOIN`; it never writes to the dimension.
+
+Decision unchanged.
+
 ## ADR-011 — Single workspace: no separate PROD environment
 
 **Date:** 2026-09-29
@@ -1037,6 +1047,20 @@ Energy and Construction (≈1.4 CU/s). Cause not identified.
 
 Decision unchanged.
 
+### Addendum — 2026-10-04: Silver runtime
+
+The Decision left the runtime for Silver and Gold to Sprint 6. This
+closes it for Silver.
+
+The three Silver notebooks (Energy, Construction, Tax) run on the
+**Python** runtime, for the same reasons as Bronze: the inputs are the
+Bronze tables, small by orders of magnitude, and a Spark session would
+hold 4 CU for no benefit.
+
+Gold has no notebook. It is covered by ADR-014.
+
+Decision unchanged.
+
 ## ADR-013 — Construction Bronze stores the raw XLS grid
 
 **Date:** 2026-10-01
@@ -1202,3 +1226,78 @@ For Construction, the table width is that of the widest of the four
 files (currently 14, from `01401600.XLS`). A change in a narrower file's
 column count only changes how many columns are null; it does not change
 the table schema and does not fail the load.
+
+## ADR-014 — Gold load for Energy, Construction and Tax as a T-SQL stored procedure
+
+**Date:** 2026-10-04
+**Status:** Accepted
+
+### Context
+
+Phase 4 §5 and `phase5_dev_plan.md` §3 (Sprint 6) specify a Gold
+notebook, `spi_nb_gold_load`, that loads `spi_fact_indicators` from the
+Silver tables of Energy, Construction and Tax.
+
+The Silver tables live in `spi_lakehouse`. The fact and dimension tables
+live in `spi_warehouse`. The load moves data from a Lakehouse into a
+Warehouse. A notebook writes to the Warehouse through a connector (see
+Alternatives). The Warehouse can read Lakehouse tables directly in
+T-SQL, by cross-database query.
+
+ADR-010 sets the Gold load pattern for the Dataflow sources:
+delete-by-source, then append, with keys resolved by lookup. The same
+rules apply to the three notebook sources.
+
+### Decision
+
+A stored procedure, `dbo.spi_sp_gold_load` in `spi_warehouse`, replaces
+the notebook `spi_nb_gold_load`. It runs one transaction:
+
+1. `DELETE FROM dbo.spi_fact_indicators WHERE source_key IN (3, 4, 5)`.
+2. `INSERT … SELECT` from the three Silver tables in `spi_lakehouse`, by
+   cross-database query.
+
+Fact keys are resolved by `LEFT JOIN` to the dimensions (ADR-010 §3).
+The procedure is versioned as `03-src/warehouse/spi_sp_gold_load.sql`.
+
+### Rationale
+
+- **Native engine for the move.** Lakehouse → Warehouse is a query
+  inside the Warehouse engine. No connector, no staging.
+- **Atomic delete and insert.** Both run in one transaction. If the
+  INSERT fails, the DELETE rolls back and the previous rows stay. This
+  is stronger than the Dataflow pattern of ADR-010, where the DELETE and
+  the append are separate steps.
+- **No Spark session.** Nothing holds the 4 CU a Spark session takes
+  (ADR-007).
+- **Lookups are JOINs.** Key resolution is plain set-based SQL against
+  the dimensions.
+- **No data through a notebook.** Rows never leave the SQL engine.
+
+### Alternatives considered
+
+**PySpark notebook with `synapsesql()`.** The Spark connector writes to
+the Warehouse through staging and `COPY INTO`. Rejected: it cannot run
+the DELETE, and it pays 4 CU/s for a Spark session.
+
+**Python notebook with `connect_to_artifact()`.** Rejected: unverified
+on this runtime, and it would insert rows one by one through ODBC.
+
+### Consequences
+
+- Supersedes the Gold notebook in Phase 4 §5 and in
+  `phase5_dev_plan.md` §3 (Sprint 6) and S7A-3. Where those name the
+  Gold notebook, read `dbo.spi_sp_gold_load`.
+- Called from `spi_pl_gold` by a Script or Stored procedure activity.
+  Logged per ADR-009.
+- Ownership of `spi_dim_indicator` is unchanged (ADR-010). Indicator
+  rows for Energy, Construction and Tax are added in
+  `spi_df_gold_dimensions`. The procedure only looks keys up.
+- **Unverified until the first run:**
+  - (a) Cross-database query from `spi_warehouse` to `spi_lakehouse`.
+  - (b) SQL analytics endpoint lag after Silver writes. The procedure
+    reads Silver through the endpoint, which may not yet see the latest
+    Delta commit. Mitigation: call the Refresh SQL endpoint metadata
+    REST API after Silver, before the procedure.
+
+  Record both as an addendum.

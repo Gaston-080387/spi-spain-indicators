@@ -58,10 +58,12 @@ manually before each Gold refresh.
 runtime (ADR-012). Logging by Script activities in the pipelines
 (ADR-009). Positional Bronze for the spreadsheet sources (ADR-013).
 
-**Sprint 6 (Silver and Gold notebooks) — next.** Three Silver notebooks
-(Energy, Construction, Tax) and the Gold notebook `spi_nb_gold_load`,
-7–13 October (`phase5_dev_plan.md` §2.1). Trial expires ~2026-10-20;
-checkpoint 13 October.
+**Sprint 6 (Silver notebooks and Gold stored procedure) — next.** Three
+Silver notebooks (Energy, Construction, Tax) on the Python runtime
+(ADR-012 addendum, 2026-10-04) and the stored procedure
+`dbo.spi_sp_gold_load` in `spi_warehouse`, which replaces the Gold
+notebook (ADR-014), 7–13 October (`phase5_dev_plan.md` §2.1). Trial
+expires ~2026-10-20; checkpoint 13 October.
 
 **Unverified assumptions** worth checking before relying on them:
 - Whether Direct Lake requires the Large semantic model storage format
