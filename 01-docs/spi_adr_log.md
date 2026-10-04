@@ -1031,6 +1031,10 @@ All library checks listed in the Consequences are now closed: the REE
 notebook needed no extra libraries, `xlrd` needs an inline `%pip`
 (2026-10-01 addendum), and `openpyxl` needs nothing.
 
+CU measured in the Capacity Metrics app: `spi_nb_bronze_tax` consumed 366 CU-s
+over 202 s of runtime (14-day item view). That is ≈1.8 CU/s, higher than
+Energy and Construction (≈1.4 CU/s). Cause not identified.
+
 Decision unchanged.
 
 ## ADR-013 — Construction Bronze stores the raw XLS grid
