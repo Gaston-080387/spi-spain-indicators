@@ -37,6 +37,7 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 012 | Bronze notebooks on the Fabric Python runtime | Accepted | Bronze notebooks, Sprint 5 |
 | 013 | Construction Bronze stores the raw XLS grid | Accepted | Construction Bronze notebook, Sprint 6 Silver |
 | 014 | Gold load for Energy, Construction and Tax as a T-SQL stored procedure | Accepted | Gold fact load, Sprint 6 |
+| 015 | Silver period completeness and source anomalies | Accepted | Silver notebooks, Gold validation, report |
 
 ---
 
@@ -1301,3 +1302,81 @@ on this runtime, and it would insert rows one by one through ODBC.
     REST API after Silver, before the procedure.
 
   Record both as an addendum.
+
+## ADR-015 — Silver period completeness and source anomalies
+
+**Date:** 2026-10-04
+**Status:** Accepted
+
+### Context
+
+Building the Silver notebooks raised three questions about what Silver
+and Gold publish.
+
+- **Partial periods.** The REE API returns the current month as a
+  running total, not a complete month. The other four publishers (INE
+  for IPC and IPI, MITMA, AEAT) release complete months with a lag.
+- **Uneven period coverage.** Sources and regions do not all end at the
+  same month. Construction is the source where a gap between regions
+  can appear.
+- **A break in the source data.** Madrid energy demand drops about 25×
+  from 2026-02: about 2.9M MWh in January 2026, about 107k MWh in the
+  months after. The break is in the REE source, not in SPI code. Its
+  cause is unknown.
+
+### Decision
+
+**1. Silver publishes complete periods only.** The rule applies to all
+sources. It is implemented in Energy only: Silver drops every period
+greater than or equal to the month of `_ingestion_timestamp`. The other
+four sources need no code for it.
+
+**2. No period alignment across regions in Gold.** Gold keeps every
+valid period. A validation query reports the maximum period per source ×
+region. Alignment at report level, if needed, is a DAX measure
+(ADR-002).
+
+**3. Source anomalies are kept as received.** Silver does not exclude or
+rescale the Madrid series. The report carries a note on the Madrid
+energy series from February 2026.
+
+### Rationale
+
+- **A partial month is not a value.** A running total compared with
+  complete months reads as a fall in demand. Dropping it is safer than
+  publishing it with a caveat.
+- **YAGNI for the other sources.** Their publishers release complete
+  months only. Code for a case that does not occur is untested code.
+- **Gold holds facts, not presentation choices.** Trimming Gold to a
+  common period discards valid data to solve a display question. DAX
+  can solve it without loss (ADR-002).
+- **Silver does not correct the source.** The Madrid break is in REE's
+  data. Excluding or rescaling it would invent values SPI cannot
+  justify. A note keeps the data honest and the reader informed.
+
+### Alternatives considered
+
+**Keep the partial month with an `is_partial` flag.** Rejected: every
+consumer would have to filter on it, and one that forgets shows a false
+drop.
+
+**Trim Gold to the common maximum period.** Rejected: it drops valid
+periods from every source because of one lagging region.
+
+**Exclude Madrid from 2026-02 in Silver.** Rejected: it hides a real
+source value and leaves a hole in the series.
+
+**Rescale Madrid.** Rejected: the cause is unknown, so any factor is a
+guess.
+
+### Consequences
+
+- The Energy cutoff is correct only because `_ingestion_timestamp` is
+  the time of the REE API call.
+- If a publisher other than REE starts releasing partial months, the
+  rule needs code for that source.
+- Gold validation gains a max-period query per source × region. A gap
+  is reported, not fixed.
+- The report (Sprint 7) needs a note on the Madrid energy series from
+  February 2026.
+- See `lessons-learned.md`, Source data, Energy (REE).

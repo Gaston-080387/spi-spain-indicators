@@ -253,6 +253,16 @@ and issues COPY INTO.
 Verify encoding per file rather than assuming an institution-wide
 convention.
 
+### Energy (REE)
+
+- The API returns the current month as a running total, not a complete
+  month. Silver drops every period from the month of
+  `_ingestion_timestamp` onwards (ADR-015, Decision 1).
+- Madrid energy demand drops about 25× from **2026-02**: about 2.9M MWh
+  in January 2026, about 107k MWh in the months after. Cause unknown,
+  source side: the values come from REE as received, not from SPI code.
+  Silver keeps them unchanged, and the report carries a note (ADR-015).
+
 ### Construction (MITMA)
 
 - `-` means no value. Silver must convert it to null.
