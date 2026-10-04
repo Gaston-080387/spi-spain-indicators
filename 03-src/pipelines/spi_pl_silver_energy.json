@@ -1,0 +1,77 @@
+{
+    "name": "spi_pl_silver_energy",
+    "objectId": "68ba30e7-32a7-407e-9547-91ad9613fecc",
+    "properties": {
+        "activities": [
+            {
+                "name": "nb_silver_energy",
+                "type": "TridentNotebook",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "notebookId": "961c215d-868e-4c15-85c6-e2a33161b54c",
+                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                }
+            },
+            {
+                "name": "scr_log_silver_energy",
+                "type": "Script",
+                "dependsOn": [
+                    {
+                        "activity": "nb_silver_energy",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "connectionSettings": {
+                    "name": "spi_warehouse",
+                    "properties": {
+                        "annotations": [],
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                        },
+                        "externalReferences": {
+                            "connection": "e22a81cb-07ae-4539-8765-fc89bcb0b94d"
+                        }
+                    }
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "Query",
+                            "text": {
+                                "value": "INSERT INTO dbo.spi_log_pipeline_execution\n    (run_id, pipeline_name, layer, source, status, start_time, end_time, error_message, rows_processed)\nVALUES\n    ('@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}',\n     'spi_pl_silver_energy',\n     'silver',\n     'energy',\n     '@{if(equals(activity('nb_silver_energy').Status, 'Succeeded'), 'success', 'failed')}',\n     '@{utcnow()}',\n     '@{utcnow()}',\n     @{if(equals(activity('nb_silver_energy').Status, 'Succeeded'), 'NULL', concat('''', replace(string(activity('nb_silver_energy').Error.message), '''', ''''''), ''''))},\n     @{if(equals(activity('nb_silver_energy').Status, 'Succeeded'), string(json(coalesce(activity('nb_silver_energy').output?.result?.exitValue, '{}'))?.rows_written), 'NULL')});",
+                                "type": "Expression"
+                            }
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            }
+        ],
+        "parameters": {
+            "run_id": {
+                "type": "string"
+            }
+        },
+        "lastModifiedByObjectId": "570f0e39-66e1-4394-86cd-20e802978332",
+        "lastPublishTime": "2026-10-04T20:12:53Z"
+    }
+}
