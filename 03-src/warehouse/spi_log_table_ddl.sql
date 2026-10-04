@@ -1,18 +1,21 @@
 -- =====================================================================
--- SPI  |  Logging Table DDL  |  Lakehouse (Delta) : spi_lakehouse
+-- SPI  |  Logging Table DDL  |  Warehouse : spi_warehouse
 -- Sprint 3 - Task S3-5   (Phase 4 §10.1)
 --
--- Execution context: run ONCE, in a Fabric Lakehouse notebook cell, as
--- Spark SQL (a %%sql cell, or spark.sql("""...""")). The notebook must be
--- attached to spi_lakehouse as its default lakehouse.
+-- Execution context: run ONCE, as T-SQL, in the spi_warehouse SQL editor.
 --
--- Lives in the Lakehouse, not the Warehouse: this is operational metadata,
--- not analytical data (Phase 4 §10). Every notebook and pipeline writes here.
+-- Lives in the Warehouse, not the Lakehouse (ADR-009): the Lakehouse SQL
+-- analytics endpoint is read-only, so T-SQL cannot INSERT there. Phase 4
+-- §2.3.3 places it in spi_lakehouse; ADR-009 supersedes that.
+--
+-- Rows are written by Script activities in the pipelines, chained On
+-- completion after each Copy or Notebook activity (ADR-009, 2026-09-30
+-- addendum). Notebooks do not write here.
 -- =====================================================================
 
 CREATE TABLE dbo.spi_log_pipeline_execution (
     run_id           VARCHAR(36)   NOT NULL,  -- GUID from master pipeline
-    pipeline_name    VARCHAR(100)  NOT NULL,  -- e.g. spi_nb_bronze_energy
+    pipeline_name    VARCHAR(100)  NOT NULL,  -- e.g. spi_pl_bronze_energy
     layer            VARCHAR(10)   NOT NULL,  -- bronze | silver | gold
     source           VARCHAR(20)   NOT NULL,  -- ipc | ipi | energy | construction | tax | all
     status           VARCHAR(10)   NOT NULL,  -- running | success | failed
@@ -34,15 +37,13 @@ CREATE TABLE dbo.spi_log_pipeline_execution (
 -- SELECT pipeline_name, layer, source, status, start_time, end_time, rows_processed
 -- FROM spi_log_pipeline_execution
 -- WHERE run_id = (
---     SELECT run_id FROM spi_log_pipeline_execution
+--     SELECT TOP 1 run_id FROM spi_log_pipeline_execution
 --     ORDER BY start_time DESC
---     LIMIT 1
 -- )
 -- ORDER BY start_time;
 
 -- Recent failures across all runs
--- SELECT pipeline_name, source, start_time, error_message
+-- SELECT TOP 20 pipeline_name, source, start_time, error_message
 -- FROM spi_log_pipeline_execution
 -- WHERE status = 'failed'
--- ORDER BY start_time DESC
--- LIMIT 20;
+-- ORDER BY start_time DESC;
