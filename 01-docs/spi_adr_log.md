@@ -1380,3 +1380,28 @@ guess.
 - The report (Sprint 7) needs a note on the Madrid energy series from
   February 2026.
 - See `lessons-learned.md`, Source data, Energy (REE).
+
+### Addendum — 2026-10-04: Energy national scope
+
+**Context.** The Energy "Nacional" series is requested with
+`geo_limit = peninsular` (`geo_ids` 8741, Phase 3 Source 3). It
+excludes Baleares, Canarias, Ceuta and Melilla.
+
+**Decision.** Silver maps it to the canonical region `Nacional`, the
+value copied from `spi_dim_region` (ADR-010 §4). The gap is documented,
+not corrected. This is the same pattern as Decision 3: source data as
+received.
+
+**Alternatives considered.**
+
+- **Request national data from the API.** Rejected: tested by the
+  author, not available for `Demanda real`.
+- **Add a `Peninsular` row to `spi_dim_region`.** Rejected: Energy would
+  disappear from every `Nacional` view.
+
+**Consequences.**
+
+- The report carries a note, "Energy national = peninsular system",
+  next to the Madrid note (Sprint 7).
+- Cross-source comparisons at national level are approximate for
+  Energy.
