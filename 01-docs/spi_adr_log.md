@@ -897,6 +897,36 @@ The Sprint 6 revisit in the Consequences is closed by ADR-014.
 
 Decision unchanged.
 
+### Addendum — 2026-10-06: domain rule and keys 22–29
+
+**Rule for all five sources.** `spi_dim_indicator.domain` equals
+`spi_dim_source.source_domain` of the indicator's source. IPC and IPI
+already follow it (`Consumer Prices`, `Industrial Production`). One
+vocabulary serves both dimensions, and `domain` stays part of the
+natural key `(indicator_category, domain)` (Decision 5).
+
+**Keys 22–29 added** to `spi_df_gold_dimensions`, continuing the single
+sequence. `indicator_category` is copied from the constants in the
+Silver notebooks, not retyped.
+
+| Keys | Source | `domain` | `indicator_category` | `unit_of_measure` |
+|---|---|---|---|---|
+| 22 | Energy | `Energy` | `Demanda eléctrica` (ADR-015, 2026-10-06 addendum) | `MWh` |
+| 23–24 | Construction | `Construction` | the two table categories (ADR-016) | `Thousand EUR` |
+| 25–29 | Tax | `Tax Revenue` | four net taxes and `Resto Ingresos netos` (ADR-017) | `Thousand EUR` |
+
+`indicator_name` follows `<source> - <indicator_category>`; frequency
+`Monthly`.
+
+**Correction to Decision 2.** `spi_dim_source` is not defined in
+`spi_df_gold_dimensions`. It is seeded by the `INSERT` statements in
+`03-src/warehouse/spi_gold_ddl.sql`. The dataflow loads
+`spi_dim_region`, `spi_dim_calendar` and `spi_dim_indicator` only.
+`spi_dim_region` is seeded twice (the DDL `INSERT` and the dataflow,
+Replace); the dataflow is the owner and every refresh overwrites the
+table, so the DDL `INSERT` is the initial seed only and region rows are
+changed in the dataflow.
+
 ## ADR-011 — Single workspace: no separate PROD environment
 
 **Date:** 2026-09-29
@@ -1458,6 +1488,17 @@ received.
   next to the Madrid note (Sprint 7).
 - Cross-source comparisons at national level are approximate for
   Energy.
+
+### Addendum — 2026-10-06: Energy indicator category
+
+Phase 3 (Source 3) names the Energy indicator `Demanda real`. Energy
+Silver writes `indicator_category = 'Demanda eléctrica'` (constant
+`INDICATOR_CATEGORY` in `spi_nb_silver_energy`). The `spi_dim_indicator`
+row copies that value, not the Phase 3 name (ADR-010). Where Phase 3
+says `Demanda real` as the category, read `Demanda eléctrica`.
+
+The REE series requested is unchanged. The 2026-10-04 addendum's
+reference to `Demanda real` names the REE series, not the category.
 
 ## ADR-016 — Construction Silver: layout parsing and vocabulary
 

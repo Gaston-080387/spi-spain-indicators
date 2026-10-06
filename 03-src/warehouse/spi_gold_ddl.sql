@@ -121,8 +121,9 @@ VALUES
 GO
 
 /* spi_dim_calendar is populated programmatically (2000 -> current year,
-   ~324 rows) in Phase 5. spi_dim_indicator is populated by the Gold
-   notebook as sources are processed. */
+   ~324 rows) in Phase 5. spi_dim_indicator rows are seeded by the
+   dataflow spi_df_gold_dimensions (ADR-010); the Gold procedure
+   dbo.spi_sp_gold_load only looks keys up (ADR-014). */
 
 
 /* =====================================================================

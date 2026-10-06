@@ -51,6 +51,10 @@ the `DELETE … WHERE source_key` step before each Gold dataflow, and
 logging for Silver and Gold dataflows. Until then the DELETE is run
 manually before each Gold refresh.
 
+**Sprint 7 notes:** `spi_dim_indicator.indicator_name` for IPC keys
+1–13 contains a double space (`IPC -  Alimentos…`). Display only; not a
+join key.
+
 **Sprint 5 (Bronze notebooks: Energy, Construction, Tax) — closed
 2026-10-03.** Three Bronze notebooks and pipelines
 (`spi_nb_bronze_energy` / `_construction` / `_tax`,
