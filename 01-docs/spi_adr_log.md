@@ -39,6 +39,7 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 014 | Gold load for Energy, Construction and Tax as a T-SQL stored procedure | Accepted | Gold fact load, Sprint 6 |
 | 015 | Silver period completeness and source anomalies | Accepted | Silver notebooks, Gold validation, report |
 | 016 | Construction Silver: layout parsing and vocabulary | Accepted | Construction Silver notebook, Gold dimensions |
+| 017 | Tax Silver: additive concepts and regional scope | Accepted | Tax Silver notebook, Gold dimensions, report |
 
 ---
 
@@ -1580,3 +1581,121 @@ would need to know which file a row came from, which Silver drops.
   it with the month-sequence check. A `_row_number` column in Bronze
   would remove the dependency.
 - See `lessons-learned.md`, Source data, Construction (MITMA).
+
+## ADR-017 — Tax Silver: additive concepts and regional scope
+
+**Date:** 2026-10-06
+**Status:** Accepted
+
+### Context
+
+`spi_bronze_tax_raw` holds the sheet `datos_delegaciones` as received
+(ADR-013, 2026-10-03 addendum): a header row, one row per (Ejercicio,
+Mes, Concepto), and one column per office. Inspection for Silver found:
+
+- **45 concepts in a hierarchy.** Grand total, chapters (CAP.I, CAP.II,
+  CAP.III), taxes, and sub-items, each as net, gross and refunds. Net
+  equals gross minus refunds, and the grand total equals the sum of the
+  three chapters, exactly. The chapters contain taxes that are not
+  listed as concepts, so the listed taxes do not add up to their
+  chapter.
+- **`Total` is not the sum of the regions.** `Total` equals
+  `Delegaciones` + `Servicios Centrales`, exactly, in every row.
+  `Delegaciones` equals the 17 D.E. plus Ceuta and Melilla. `Servicios
+  Centrales` belongs to no D.E.
+- **Two side columns.** `Servicios Centrales (Participación CC.AA.)`
+  and `(Participación CC.LL.)` are outside `Total`: adding them breaks
+  the identity above.
+- **Negative values.** Net values are negative in months where refunds
+  exceed receipts.
+- **Units.** Thousand EUR, stated in the summary sheets
+  (`cuadro_conceptos`, `cuadro_delegaciones`, `gráfico_evolución`), not
+  on `datos_delegaciones`.
+
+### Decision
+
+**1. Net concepts only, all additive.** Silver keeps five categories:
+
+| `indicator_category` | Source |
+|---|---|
+| `IRPF Ingresos netos` | Concept row, label copied from the source |
+| `IVA Ingresos netos` | Concept row, label copied from the source |
+| `I.SOCIEDADES Ingresos netos` | Concept row, label copied from the source |
+| `II.EE. Ingresos netos` | Concept row, label copied from the source |
+| `Resto Ingresos netos` | Computed in Silver: `Total Ingresos netos` minus the four |
+
+`Total Ingresos netos` itself is not stored. It is the SUM of the five
+categories in DAX. Every Tax fact row is additive. This supersedes the
+concept mapping of Phase 3 (Source 5).
+
+**2. Regional scope.**
+
+| Region (`spi_dim_region`) | Column |
+|---|---|
+| `Nacional` | `Total` (= `Delegaciones` + `Servicios Centrales`) |
+| `Madrid` | `D.E. Madrid` |
+| `Cataluña` | `D.E. Cataluña` |
+
+Regional figures are what the regional delegation collects. Large
+companies are collected centrally, in `Servicios Centrales`, and appear
+only in `Nacional`. The workbook shows that `Servicios Centrales` sits
+outside every D.E.; that it holds the large companies is the author's
+reading of the source. The report carries a note (Sprint 7). The two
+Participación columns are outside `Total` and are ignored.
+
+**3. Values as received.** Negative values are genuine (refunds above
+receipts) and are kept. No null, zero or negative filter. Units are
+thousand EUR.
+
+**4. Header by content.** Silver finds the header row as the one row
+with `col_01 = 'Ejercicio'` and maps columns by label; zero or several
+such rows raise. Bronze stores no row order (ADR-016, Consequences).
+
+### Rationale
+
+- **No double counting.** With all levels stored side by side, any SUM
+  across categories counts the same euro two or three times. Five
+  disjoint categories that add up to the total make every SUM correct.
+- **Resto closes the total.** The four taxes are the ones a reader
+  looks for. Resto carries everything else, including the unlisted
+  taxes of CAP.I and CAP.II and all of CAP.III, so nothing is lost.
+- **Nacional is the national figure.** `Total` is what AEAT publishes
+  as the national total. `Delegaciones` alone would drop central
+  collection from every national view.
+- **Silver does not reassign the source.** `Servicios Centrales` is
+  not part of D.E. Madrid in the source. Moving it would invent a
+  regional figure AEAT does not publish.
+- **Labels by content.** Header labels are stable text; positions move
+  if AEAT adds an office.
+
+### Alternatives considered
+
+**All 45 concepts.** Rejected: mixes levels, and every SUM across
+categories double counts.
+
+**Total and the four taxes stored side by side.** Rejected: the fact
+would hold a non-additive row; every measure would need to exclude it.
+
+**Nacional = `Delegaciones`.** Rejected: drops central collection, so
+the national figure would not match AEAT's.
+
+**`Servicios Centrales` assigned to Madrid.** Rejected: not what the
+source says, and it would inflate Madrid with national large-company
+receipts.
+
+### Consequences
+
+- `spi_df_gold_dimensions` needs five `spi_dim_indicator` rows with the
+  categories of Decision 1, copied from Silver output, not retyped
+  (ADR-010).
+- Silver output: 5 categories × 3 regions × the number of months.
+- `Resto Ingresos netos` is the one category label built in SPI; the
+  other four are source text.
+- `Resto` can be negative, like any net value.
+- The report (Sprint 7) needs two notes: regional figures exclude
+  centrally collected large companies; units are thousand EUR.
+- Silver guards: `Total` = `Delegaciones` + `Servicios Centrales` and
+  `D.E. Cataluña` = its four provinces on every row; `Total Ingresos
+  netos` = CAP.I + CAP.II + CAP.III net per period for the three kept
+  columns.
+- See `lessons-learned.md`, Source data, Tax (AEAT).

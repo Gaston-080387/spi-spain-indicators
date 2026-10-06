@@ -290,3 +290,23 @@ convention.
   month). See ADR-013, 2026-10-03 validation.
 - Blank cells arrive as `''`, not null. Construction also has real nulls
   (missing columns). Silver must treat both `''` and NULL as empty.
+- Units (thousand EUR, `miles de euros`) appear only in the summary
+  sheets (`cuadro_conceptos`, `cuadro_delegaciones`,
+  `gráfico_evolución`), never on `datos_delegaciones`.
+- `Total` = `Delegaciones` + `Servicios Centrales`, exactly. The two
+  `Servicios Centrales (Participación CC.AA. / CC.LL.)` columns are
+  outside `Total`: they are non-zero only in some net and refund rows,
+  and adding them breaks the identity (ADR-017).
+- `I.SOCIEDADES Ingresos brutos` does not equal its three sub-items in
+  38 of 233 periods: an unbroken run 2013-07 to 2015-05 (up to 251,701
+  thousand EUR nationally, in 2013-07) and scattered gaps of a few
+  units in other years. Not usable as a guard.
+- CAP.I and CAP.II contain taxes that are not listed as concepts. The
+  listed taxes do not add up to their chapter; the grand total does
+  equal CAP.I + CAP.II + CAP.III.
+- Negative values are genuine: net values where a month's refunds
+  exceed receipts, and at least one gross value (`CAP.III Ingresos
+  brutos`, D.E. Madrid). A non-negative check would be wrong.
+- No revisions found between two releases: a copy ending 2026-03 and
+  one ending 2026-05 are identical on all 231 shared periods. Unlike
+  MITMA (Construction).
