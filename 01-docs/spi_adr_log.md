@@ -751,8 +751,8 @@ ran On completion and recorded the outcome — the behaviour the
 
 ### Validation — 2026-10-06: Silver pipelines
 
-`spi_pl_silver_energy` and `spi_pl_silver_construction`, each run
-standalone, three runs in order.
+`spi_pl_silver_energy`, `spi_pl_silver_construction` and
+`spi_pl_silver_tax`, each run standalone, three runs in order.
 
 | Pipeline | Run | Notebook activity | Script activity | Pipeline | Log `status` | `rows_processed` | `error_message` |
 |---|---|---|---|---|---|---|---|
@@ -762,6 +762,9 @@ standalone, three runs in order.
 | `spi_pl_silver_construction` | Success | Succeeded | Succeeded | Succeeded | `success` | 1338 | NULL |
 | `spi_pl_silver_construction` | Failure (source table renamed) | Failed | Succeeded | Failed | `failed` | NULL | Contains the `TableNotFoundError` |
 | `spi_pl_silver_construction` | Success (rerun) | Succeeded | Succeeded | Succeeded | `success` | 1338 | NULL |
+| `spi_pl_silver_tax` | Success | Succeeded | Succeeded | Succeeded | `success` | 3540 | NULL |
+| `spi_pl_silver_tax` | Failure (source table renamed) | Failed | Succeeded | Failed | `failed` | NULL | Contains the `TableNotFoundError` |
+| `spi_pl_silver_tax` | Success (rerun) | Succeeded | Succeeded | Succeeded | `success` | 3540 | NULL |
 
 The Silver notebooks have no parameters cell, so the wrong-type base
 parameter used on 2026-09-30 is not available. The failure was forced
