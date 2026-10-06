@@ -748,6 +748,27 @@ The failure was forced with a base parameter of the wrong type (see
 ran On completion and recorded the outcome — the behaviour the
 2026-09-30 addendum depends on.
 
+### Validation — 2026-10-06: Silver pipelines
+
+`spi_pl_silver_energy` and `spi_pl_silver_construction`, each run
+standalone, three runs in order.
+
+| Pipeline | Run | Notebook activity | Script activity | Pipeline | Log `status` | `rows_processed` | `error_message` |
+|---|---|---|---|---|---|---|---|
+| `spi_pl_silver_energy` | Success | Succeeded | Succeeded | Succeeded | `success` | 457 | NULL |
+| `spi_pl_silver_energy` | Failure (source table renamed) | Failed | Succeeded | Failed | `failed` | NULL | Contains the `TableNotFoundError` |
+| `spi_pl_silver_energy` | Success (rerun) | Succeeded | Succeeded | Succeeded | `success` | 457 | NULL |
+| `spi_pl_silver_construction` | Success | Succeeded | Succeeded | Succeeded | `success` | 1338 | NULL |
+| `spi_pl_silver_construction` | Failure (source table renamed) | Failed | Succeeded | Failed | `failed` | NULL | Contains the `TableNotFoundError` |
+| `spi_pl_silver_construction` | Success (rerun) | Succeeded | Succeeded | Succeeded | `success` | 1338 | NULL |
+
+The Silver notebooks have no parameters cell, so the wrong-type base
+parameter used on 2026-09-30 is not available. The failure was forced
+by a temporary change to the source table name in the notebook. The
+change was reverted, and the success rerun confirms the revert. In
+every run the Script activity ran On completion and recorded the
+outcome.
+
 ## ADR-010 — Gold load strategy for Dataflow sources: seeded dimensions, delete-by-source + append
 
 **Date:** 2026-09-28

@@ -139,6 +139,10 @@ and issues COPY INTO.
   runs. No Fabric Environment is needed.
 - `openpyxl` is included in the Python runtime (unlike `xlrd`). No
   `%pip install` is needed.
+- Reading a Delta table that does not exist with `deltalake`
+  (`DeltaTable(uri, …)`) fails with `TableNotFoundError` and the message
+  `No files in log segment`. The message does not name the table; the
+  URI in the notebook is the place to look.
 
 ---
 
