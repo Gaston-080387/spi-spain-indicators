@@ -266,10 +266,17 @@ convention.
 ### Construction (MITMA)
 
 - `-` means no value. Silver must convert it to null.
+  - 2026-10-06: corrected. `-` means no tenders in the month, so it is
+    0, not null (ADR-016).
 - The year appears only on the first month row of each block. Silver
   must forward-fill it.
 - `01401600.XLS` is offset by one row and one column relative to the
   other three files (ADR-013).
+- The column header is an image. No cell names a region, so regions can
+  only be mapped by position, checked against the image (ADR-016).
+- MITMA revises past months between releases. Two downloads of the same
+  file months apart differ on earlier values, e.g. the 2025 national
+  total of table 8: 6,876,428 vs 6,875,278 thousand EUR.
 
 ### Tax (AEAT)
 

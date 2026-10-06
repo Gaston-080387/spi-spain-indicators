@@ -38,6 +38,7 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 013 | Construction Bronze stores the raw XLS grid | Accepted | Construction Bronze notebook, Sprint 6 Silver |
 | 014 | Gold load for Energy, Construction and Tax as a T-SQL stored procedure | Accepted | Gold fact load, Sprint 6 |
 | 015 | Silver period completeness and source anomalies | Accepted | Silver notebooks, Gold validation, report |
+| 016 | Construction Silver: layout parsing and vocabulary | Accepted | Construction Silver notebook, Gold dimensions |
 
 ---
 
@@ -1228,6 +1229,33 @@ files (currently 14, from `01401600.XLS`). A change in a narrower file's
 column count only changes how many columns are null; it does not change
 the table schema and does not fail the load.
 
+### Addendum — 2026-10-06: corrections from the Silver inspection
+
+Inspecting the four files for Silver (ADR-016) found two facts in this
+record wrong, and one missing.
+
+- **Merged cells exist.** The Context states that `merged_cells` is
+  empty in all four files. It is empty only because xlrd fills it when
+  the workbook is opened with `formatting_info=True`; the inspection
+  used the default. With that flag, every file has merged cells: the
+  title rows, the year column of the annual and variation rows, and the
+  year cell of each monthly block (one merge across the 12 month rows).
+- **The year needs a forward-fill.** The Consequences bullet "No
+  forward-fill is needed" is superseded. The year appears only on the
+  first month row of each year block, because that cell is merged
+  across the block. The 2026-10-01 validation already noted the sparse
+  year; it is a direct consequence of the merges, not unrelated to them.
+- **Four files, two tables.** The files are not one file per region.
+  They are two tables, each split into a main file and a continuation
+  file that holds further region columns for the same rows:
+
+  | Table | Contracting body | Main | Continuation |
+  |---|---|---|---|
+  | 8 | Estado y Seguridad Social | `01401400.XLS` | `01401600.XLS` |
+  | 9 | Entes Territoriales | `01402600.XLS` | `01402800.XLS` |
+
+The Decision is unchanged. Layout parsing is specified in ADR-016.
+
 ## ADR-014 — Gold load for Energy, Construction and Tax as a T-SQL stored procedure
 
 **Date:** 2026-10-04
@@ -1405,3 +1433,129 @@ received.
   next to the Madrid note (Sprint 7).
 - Cross-source comparisons at national level are approximate for
   Energy.
+
+## ADR-016 — Construction Silver: layout parsing and vocabulary
+
+**Date:** 2026-10-06
+**Status:** Accepted
+
+### Context
+
+ADR-013 moved the parsing of the MITMA layout from Bronze to Silver.
+`spi_bronze_construction_raw` holds the raw grid of four files as
+positional string columns. Inspection of the grid for Silver found:
+
+- **Two tables, each split in two files** (ADR-013, 2026-10-06
+  addendum). Table 8 is Estado y Seguridad Social (`01401400.XLS` main,
+  `01401600.XLS` continuation). Table 9 is Entes Territoriales
+  (`01402600.XLS` main, `01402800.XLS` continuation). Main and
+  continuation share rows and periods and split the region columns
+  between them.
+- **One layout after the offset.** With one column and one row removed
+  from `01401600.XLS`, all four files have the same row structure:
+  title rows, annual totals for the last five complete years, three
+  variation rows (`V.anual(1)`, `V.acumulado(1)`, `V.interanual(1)`),
+  then the monthly block, newest first, then a source line and
+  footnotes.
+- **No region names in the file.** The column header is an image. No
+  cell names a region.
+- **One series per file.** Every file is `TOTAL CONSTRUCCIÓN / MILES DE
+  EUROS`. There is no Edificación / Obra civil split. The contracting
+  body is the only other dimension, and it comes from the table.
+- **`-` in value cells.** It marks months with no tenders.
+
+### Decision
+
+**1. Region mapping by position.** Verified by the author against the
+MITMA header image on 2026-10-06. Positions are after the offset of
+`01401600.XLS` is removed.
+
+| File | Column | Region (`spi_dim_region`) |
+|---|---|---|
+| Main (`01401400`, `01402600`) | `col_03` (TOTAL) | `Nacional` |
+| Main (`01401400`, `01402600`) | `col_12` | `Cataluña` |
+| Continuation (`01401600`, `01402800`) | `col_06` | `Madrid` |
+
+`col_06` of the continuation is raw `col_07` in `01401600.XLS` and raw
+`col_06` in `01402800.XLS`. TOTAL includes the "NO REGIONAL" column, so
+`Nacional` is the full national figure.
+
+**2. `-` is 0, not null.** It means no tenders in the month, which is a
+value. A blank or null cell in the monthly block is not expected and
+raises.
+
+**3. Monthly rows only.** Silver keeps the rows whose month column holds
+one of the 12 month labels (`ene.` … `dic.`). Annual rows, variation
+rows and footnotes have no month label and are excluded by the same
+rule. The year is forward-filled within the kept rows.
+
+**4. Indicator category built in Silver.** Silver writes
+`indicator_category` as:
+
+- `Total construcción - Estado y Seguridad Social` (table 8)
+- `Total construcción - Entes Territoriales` (table 9)
+
+This supersedes the concatenation in Gold of Phase 3 (Source 4) and
+Phase 4 §5.6.
+
+**5. Guards.** Silver raises, and writes nothing, when:
+
+- **Totals identity.** Per table and (year, month), main `col_03` does
+  not equal the sum of the 20 region columns across main and
+  continuation, within 0.5. A period present in only one of the two
+  files also raises.
+- **Annual check.** For a year with an annual row, its 12 monthly values
+  do not equal the annual row in a kept column, within 0.5. A year with
+  an annual row and fewer than 12 months also raises.
+- **Month sequence.** Within a file, the kept months do not run
+  backwards one month at a time with no gap.
+
+### Rationale
+
+- **Position is the only key the file offers.** With no readable
+  header, a mapping by position is the only option. The guards make it
+  safe: a column moved by MITMA breaks the totals identity or the
+  annual check, so a shift fails the run instead of loading the wrong
+  region.
+- **`-` is a real zero.** The totals identity holds with `-` as 0 on
+  every monthly row of both tables. A null would read as missing data
+  and change averages and counts in the report.
+- **One rule for all four files.** Selecting by month label needs no
+  row numbers, so it absorbs the `01401600.XLS` row offset and future
+  months without per-file code.
+- **The category is a Silver fact.** The contracting body is known only
+  from which file a row came from. Silver has that context; Gold
+  should receive a finished value it only looks up (ADR-014).
+- **Two checks that the source supplies.** The file carries its own
+  totals and annual sums. Checking against them costs a few lines and
+  catches parsing errors that a row count cannot.
+
+### Alternatives considered
+
+**Map regions by header text.** Not possible: the header is an image.
+
+**`-` as null.** Rejected. It contradicts the meaning of the mark and
+breaks the totals identity.
+
+**Select rows by row number.** Rejected. Row numbers move with every
+new month and differ in `01401600.XLS`.
+
+**Build the category in Gold, as in Phase 4 §5.6.** Rejected. Gold
+would need to know which file a row came from, which Silver drops.
+
+### Consequences
+
+- `spi_df_gold_dimensions` needs two `spi_dim_indicator` rows with the
+  categories of Decision 4, copied from Silver output, not retyped
+  (ADR-010). The Gold procedure only looks them up (ADR-014).
+- Silver output: 3 regions × 2 categories × the number of months.
+- MITMA revises past months between releases. Silver overwrites, so
+  each run carries the latest revision; a Gold comparison against an
+  earlier load can differ on past months.
+- The mapping holds only while MITMA keeps the column order. A
+  reordering that keeps the sums intact (two regions swapped) passes
+  the guards. It needs a fresh check against the header image.
+- Bronze stores no row order. Silver depends on read order and guards
+  it with the month-sequence check. A `_row_number` column in Bronze
+  would remove the dependency.
+- See `lessons-learned.md`, Source data, Construction (MITMA).
