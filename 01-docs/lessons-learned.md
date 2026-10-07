@@ -25,6 +25,14 @@ Findings are recorded here. *Decisions* are recorded in
   responsibility of the load logic.
 - The query editor red-underlines `ENFORCED`. Cosmetic; statements
   execute correctly.
+- `CREATE PROCEDURE` checks syntax only. Tables and columns are resolved
+  at `EXEC`, so a wrong table name in a procedure surfaces on the first
+  run, not on create.
+- Distributed temp tables (`CREATE TABLE #t (…) WITH (DISTRIBUTION =
+  ROUND_ROBIN)`) work inside a stored procedure and can be loaded from a
+  join of Lakehouse tables (three-part name) and Warehouse tables.
+- The query editor also red-underlines `TRY`/`CATCH` and `ROLLBACK` in a
+  procedure. Cosmetic; the procedure creates and runs.
 - The Lakehouse SQL analytics endpoint is read-only. T-SQL cannot INSERT
   into Lakehouse Delta tables — this constrains where a pipeline-written
   log table can live.

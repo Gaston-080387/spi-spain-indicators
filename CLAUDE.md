@@ -55,6 +55,12 @@ manually before each Gold refresh.
 1–13 contains a double space (`IPC -  Alimentos…`). Display only; not a
 join key.
 
+The IPC and IPI Gold dataflows compute `calendar_key` as
+`year * 100 + month` instead of looking it up in `spi_dim_calendar`. A
+period past the calendar's last row loads without error and has no
+calendar row (silent gap). `dbo.spi_sp_gold_load` looks it up (decision
+2026-10-07).
+
 **Sprint 5 (Bronze notebooks: Energy, Construction, Tax) — closed
 2026-10-03.** Three Bronze notebooks and pipelines
 (`spi_nb_bronze_energy` / `_construction` / `_tax`,

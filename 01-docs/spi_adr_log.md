@@ -1386,6 +1386,56 @@ on this runtime, and it would insert rows one by one through ODBC.
 
   Record both as an addendum.
 
+### Addendum — 2026-10-06: unverified point (a) verified
+
+`spi_warehouse` reads the Silver tables in `spi_lakehouse` by three-part
+name (`spi_lakehouse.dbo.<table>`). Evidence:
+
+- A `UNION` over the three Silver tables returned the 8 indicator
+  categories.
+- A `LEFT JOIN` of that result to `spi_dim_indicator` returned 0
+  unmatched rows.
+
+Point (b), SQL analytics endpoint lag after Silver writes, stays open.
+
+### Validation — 2026-10-07
+
+`dbo.spi_sp_gold_load`, run from the `spi_warehouse` query editor.
+
+| Run | Result | `rows_deleted` | `rows_inserted` | Fact rows, keys 3 / 4 / 5 | Fact rows, keys 1 / 2 |
+|---|---|---|---|---|---|
+| Baseline (before creating the procedure) | — | — | — | 0 / 0 / 0 | 12,390 / 8,379 |
+| EXEC 1 | Succeeded | 0 | 5,335 | 457 / 1,338 / 3,540 | 12,390 / 8,379 |
+| EXEC 2 | Succeeded | 5,335 | 5,335 | 457 / 1,338 / 3,540 | 12,390 / 8,379 |
+| Failure (indicator_key 22 suffixed `_x`) | Msg 50001 | — | — | Unchanged | Unchanged |
+| Final EXEC (after undo) | Succeeded | Not recorded | Not recorded | Not recorded | Not recorded |
+
+Checks after EXEC 1:
+
+- Fact rows per source (keys 3, 4, 5) equal the Silver row counts.
+- IPC and IPI row counts (keys 1, 2) unchanged.
+- No duplicate `(indicator_key, region_key, calendar_key, source_key)`
+  across the fact.
+- Spot check, one row per source, read back from the fact through the
+  dimensions: fact value equals the Silver value at 4 decimals.
+
+EXEC 2 deleted and re-inserted the same 5,335 rows with all counts
+unchanged: the load is idempotent.
+
+The failure was forced by appending `_x` to `indicator_category` of
+`indicator_key` 22 (Energy). The null-key check (2a) threw 50001 with 457
+null `indicator_key` (every Energy row) and no other null keys. The THROW
+comes before the transaction, and the fact was unchanged. The change was
+undone by refreshing `spi_df_gold_dimensions`, the owner of the dimension
+(ADR-010), and the final EXEC succeeded.
+
+**Not exercised:** ROLLBACK after an error inside the transaction (after
+the DELETE, before the COMMIT). The atomicity in the Rationale relies on
+documented Fabric Warehouse transaction behaviour, not on a test.
+
+Point (b), SQL analytics endpoint lag after Silver writes, stays open
+for Sprint 7 (`spi_pl_gold`).
+
 ## ADR-015 — Silver period completeness and source anomalies
 
 **Date:** 2026-10-04
