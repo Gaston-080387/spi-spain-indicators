@@ -83,7 +83,18 @@ The stored procedure `dbo.spi_sp_gold_load` in `spi_warehouse`, which
 replaces the Gold notebook (ADR-014). Validated: Silver pipelines
 (ADR-009, 2026-10-06), Gold procedure (ADR-014, 2026-10-07).
 
-**Sprint 7 — next.** Trial expires ~2026-10-20.
+**Schedule from Sprint 7** (decided 2026-10-09). Trial expires
+~2026-10-20. Reason: Sprint 6 closed 4 days early against the
+`phase5_dev_plan.md` §2.1 schedule.
+
+- **Sprint 7, 10–16 Oct — next.** Preconditions check first: Azure
+  subscription, Power BI Pro licence, F2 in North Europe runs one
+  notebook, then paused. Then orchestration (S7A) and the Power BI
+  report, 4 pages (S7B).
+- **Sprint 8, 17–18 Oct.** Capacity move, full-history run,
+  screenshots, pause. 18 Oct is the last safe day for the move.
+- **After 20 Oct.** Sprint 9 (GitHub publication), video, last 2
+  report pages.
 
 **Unverified assumptions** worth checking before relying on them:
 - Whether Direct Lake requires the Large semantic model storage format

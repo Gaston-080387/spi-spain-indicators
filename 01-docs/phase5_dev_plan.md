@@ -3,8 +3,8 @@
 > **Document Type:** Living development plan. Internal working artifact.
 > **Scope:** Phase 4.5 (closure) → Phase 5 (Fabric development) → Phase 6 (publication).
 > **Target Duration:** 10 weeks (range: 9–13 weeks depending on dedication).
-> **Last Updated:** 2026-09-29
-> **Version:** 1.1 — replanned against the trial deadline (see §2.1)
+> **Last Updated:** 2026-10-09
+> **Version:** 1.2 — replanned after Sprint 6 closed early (see §2.2; previous replan §2.1)
 
 ---
 
@@ -87,6 +87,26 @@ Not reduced: Sprint 6 transformation quality, and defense rehearsals (time-boxed
 - **18 Oct** — begin the capacity move regardless of progress. The 7-day retention window is a safety net, not a plan.
 
 **Preconditions to verify early.** The paid capacity must be in North Europe (Warehouse connections do not work across regions). F2 has fewer Spark cores than FTL4: run one notebook on it before relying on it. Power BI publishing and viewing below F64 requires a Pro licence: confirm licence status before Sprint 7.
+
+### 2.2 Replan — 2026-10-09
+
+Supersedes the §2.1 schedule from 14 Oct onward.
+
+**Trigger.** Sprint 6 closed 2026-10-09, 4 days early; the 13 Oct checkpoint is met. Gold is loaded by a T-SQL stored procedure, not a notebook (ADR-014).
+
+**Revised schedule.**
+
+| Dates | Scope |
+|---|---|
+| 10 – 16 Oct | Sprint 7 — preconditions check first; then S7A (orchestration) and S7B (Power BI report, 4 pages) |
+| 17 – 18 Oct | Sprint 8 — capacity move, full-history run, screenshots, pause |
+| After 20 Oct | Sprint 9, demonstration video, remaining 2 report pages |
+
+**Checkpoints.**
+
+- **10 Oct** — preconditions: Azure subscription, Power BI Pro licence, F2 runs one notebook.
+- **16 Oct** — Sprint 7 closed?
+- **18 Oct** — begin the capacity move regardless of progress (unchanged from §2.1).
 
 ---
 
@@ -479,3 +499,4 @@ The plan defined in this document is engineered to produce that outcome.
 |---|---|---|
 | 1.0 | May 2026 | Initial plan. Authored prior to Sprint 0 kickoff. Living document — sprint outcomes update Sections 3, 4, 5 in place. Estimate revisions are recorded with explicit notes. |
 | 1.1 | 2026-09-29 | Replan after Sprints 3–4 exceeded estimates (§2.1). PROD workspace dropped (ADR-011); report reduced to 4 core pages in-window; video and Sprint 9 moved post-trial; Sprint 8 rewritten; §1.2 records Claude Code as implementation agent. |
+| 1.2 | 2026-10-09 | Replan after Sprint 6 closed early; Sprint 7 10–16 Oct, Sprint 8 17–18 Oct (§2.2). |
