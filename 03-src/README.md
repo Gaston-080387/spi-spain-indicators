@@ -1,21 +1,13 @@
 # Source — Productive Pipeline Code
 
-Code for the productive pipeline executed in Microsoft Fabric (Phase 5).
-
-## Structure
+Code that runs in the Microsoft Fabric workspace.
 
 | Folder | Content |
-|--------|---------|
-| `notebooks/` | PySpark/Python notebooks (Bronze, Silver, Gold layers) |
-| `pipelines/` | Microsoft Fabric Data Pipelines (JSON definitions) |
-| `dataflows/` | Microsoft Fabric Dataflows Gen2 |
-| `warehouse/` | Warehouse DDL scripts and schema definitions |
-| `power-bi/` | Power BI report (PBIP format) |
+|---|---|
+| `pipelines/` | Data Pipelines (exported JSON): Bronze for all five sources, Silver for Energy, Construction and Tax |
+| `notebooks/` | Python notebooks for Energy, Construction and Tax: `bronze/`, `silver/` |
+| `dataflows/` | Dataflows Gen2 (exported M): Silver and Gold for IPC and IPI, and the dimensions |
+| `warehouse/` | T-SQL for `spi_warehouse`: Gold DDL, log table DDL, `dbo.spi_sp_gold_load` |
+| `power-bi/` | Power BI report (Sprint 7) |
 
-## Status
-
-🚧 **Empty — Phase 5 development not yet started.**
-
-This folder will be populated as the Fabric workspace is built out, following
-the architecture defined in `01-docs/phase2_architecture.pdf` and the
-specifications in `01-docs/phase4_technical.pdf`.
+Each folder's README lists its files.

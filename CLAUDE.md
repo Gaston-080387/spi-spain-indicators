@@ -61,6 +61,11 @@ period past the calendar's last row loads without error and has no
 calendar row (silent gap). `dbo.spi_sp_gold_load` looks it up (decision
 2026-10-07).
 
+ADR-014 point (b) is open: the SQL analytics endpoint may lag behind
+Silver writes, so `dbo.spi_sp_gold_load` may read stale Silver.
+Mitigation: refresh the SQL endpoint metadata in `spi_pl_gold`, after
+Silver and before the procedure.
+
 **Sprint 5 (Bronze notebooks: Energy, Construction, Tax) — closed
 2026-10-03.** Three Bronze notebooks and pipelines
 (`spi_nb_bronze_energy` / `_construction` / `_tax`,
@@ -68,12 +73,17 @@ calendar row (silent gap). `dbo.spi_sp_gold_load` looks it up (decision
 runtime (ADR-012). Logging by Script activities in the pipelines
 (ADR-009). Positional Bronze for the spreadsheet sources (ADR-013).
 
-**Sprint 6 (Silver notebooks and Gold stored procedure) — next.** Three
-Silver notebooks (Energy, Construction, Tax) on the Python runtime
-(ADR-012 addendum, 2026-10-04) and the stored procedure
-`dbo.spi_sp_gold_load` in `spi_warehouse`, which replaces the Gold
-notebook (ADR-014), 7–13 October (`phase5_dev_plan.md` §2.1). Trial
-expires ~2026-10-20; checkpoint 13 October.
+**Sprint 6 (Silver notebooks and Gold stored procedure) — closed
+2026-10-09.** Three Silver notebooks (`spi_nb_silver_energy` /
+`_construction` / `_tax`) on the Python runtime (ADR-012 addendum,
+2026-10-04). Three Silver pipelines (`spi_pl_silver_energy` /
+`_construction` / `_tax`) with Script-activity logging (ADR-009). Eight
+`spi_dim_indicator` rows, keys 22–29 (ADR-010 addendum, 2026-10-06).
+The stored procedure `dbo.spi_sp_gold_load` in `spi_warehouse`, which
+replaces the Gold notebook (ADR-014). Validated: Silver pipelines
+(ADR-009, 2026-10-06), Gold procedure (ADR-014, 2026-10-07).
+
+**Sprint 7 — next.** Trial expires ~2026-10-20.
 
 **Unverified assumptions** worth checking before relying on them:
 - Whether Direct Lake requires the Large semantic model storage format
@@ -113,7 +123,7 @@ contradictions; do not resolve them.
 02-prerequisites/  One-time local Python bootstrap scripts (Phase 4.5 validation)
 03-src/            Fabric productive code
   warehouse/       DDL
-  notebooks/       Bronze notebooks for Energy, Construction and Tax
+  notebooks/       Energy, Construction and Tax notebooks: bronze/, silver/
   pipelines/       Bronze pipelines for all five sources (exported JSON)
   dataflows/       Silver, Gold and dimension dataflows (exported M)
   power-bi/        (empty — Sprint 7)

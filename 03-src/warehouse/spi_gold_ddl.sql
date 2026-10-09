@@ -4,7 +4,8 @@
    Star schema: 1 fact + 4 dimensions, all in the dbo schema.
 
    Target engine: Microsoft Fabric Warehouse (T-SQL / Polaris).
-   Default DB collation: Latin1_General_100_BIN2_UTF8 (UTF-8).
+   Default DB collation: Latin1_General_100_CI_AS_KS_WS_SC_UTF8 (UTF-8,
+   case-insensitive; ADR-008).
    Run order: dimensions first, seeds next, fact last.
 
    ---------------------------------------------------------------------
@@ -32,8 +33,11 @@
        enforce constraints; they document the model and let the Power BI
        semantic model auto-detect relationships.
      - No IDENTITY in Fabric Warehouse. Surrogate keys are assigned
-       explicitly: fixed dimensions via the seed INSERTs below; calendar
-       and indicator are populated programmatically in Phase 5.
+       explicitly: spi_dim_source via the seed INSERTs below; region,
+       calendar and indicator are loaded by the dataflow
+       spi_df_gold_dimensions (ADR-010). The spi_dim_region INSERT below
+       is the initial seed only; the dataflow owns the table (ADR-010
+       addendum 2026-10-06).
    ===================================================================== */
 
 
@@ -120,9 +124,8 @@ VALUES
     (5, 'TAX',          'Tax Revenue by Delegations',  'AEAT',         'Tax Revenue',           NULL, 'Monthly');
 GO
 
-/* spi_dim_calendar is populated programmatically (2000 -> current year,
-   ~324 rows) in Phase 5. spi_dim_indicator rows are seeded by the
-   dataflow spi_df_gold_dimensions (ADR-010); the Gold procedure
+/* spi_dim_calendar and spi_dim_indicator are loaded by the dataflow
+   spi_df_gold_dimensions (ADR-010); the Gold procedure
    dbo.spi_sp_gold_load only looks keys up (ADR-014). */
 
 
