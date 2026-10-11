@@ -88,14 +88,16 @@ replaces the Gold notebook (ADR-014). Validated: Silver pipelines
 `phase5_dev_plan.md` §2.1 schedule.
 
 - **Sprint 7, 10–16 Oct — next.** Preconditions check first: Azure
-  subscription, Power BI Pro licence, F2 in North Europe runs one
-  notebook, then paused. Then orchestration (S7A) and the Power BI
+  subscription, Power BI Pro licence, F2 blocked: Fabric quota 0 in
+  North Europe; support ticket 2610110050000713; checkpoint 15 Oct
+  (dev plan §2.2, 2026-10-11). Then orchestration (S7A) and the Power BI
   report, 4 pages, plus an Import-mode copy saved as .pbix in the
   repo (S7B).
 - No Power BI Pro licence: the workspace report is unavailable after
   the trial; the .pbix is the permanent demo (dev plan §2.2, 2026-10-11).
 - **Sprint 8, 17–18 Oct.** Capacity move, full-history run,
   screenshots, pause. 18 Oct is the last safe day for the move.
+  Depends on the quota being approved.
 - **After 20 Oct.** Sprint 9 (GitHub publication), video, last 2
   report pages.
 

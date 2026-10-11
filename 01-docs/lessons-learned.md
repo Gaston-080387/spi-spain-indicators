@@ -212,6 +212,23 @@ and issues COPY INTO.
 
 ---
 
+## Azure / Fabric capacity
+
+- Creating a Fabric capacity needs an organizational (Entra) account.
+  A personal Microsoft account (outlook.com) is rejected
+  ("Unsupported account").
+- The subscription Owner can be the outlook.com account, which appears
+  in the directory as a Guest (`#EXT#`). Assign roles to the
+  organizational user, not the guest; check the object ID.
+- A new pay-as-you-go subscription can have a Fabric CapacityQuota of 0
+  per region. Creation fails with "RegionalQuota: 0". The automatic
+  increase can be rejected; then a support ticket is needed. Check the
+  quota (Quotas > Microsoft Fabric) before planning a capacity move.
+- Overage protection is on by default; it bills usage above the SKU.
+  Turned off for SPI.
+
+---
+
 ## Source data
 
 - The local validation files (Sprints 1–2) are older than the live
