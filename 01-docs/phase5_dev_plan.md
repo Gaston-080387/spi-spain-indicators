@@ -108,6 +108,12 @@ Supersedes the §2.1 schedule from 14 Oct onward.
 - **16 Oct** — Sprint 7 closed?
 - **18 Oct** — begin the capacity move regardless of progress (unchanged from §2.1).
 
+**2026-10-11: Power BI licence.**
+
+- **Precondition check.** Azure subscription OK (pay-as-you-go, budget $25/month with alerts). Power BI licence: Free, covered by the trial until ~2026-10-20.
+- **Constraint.** On F SKUs below F64, creating and viewing Power BI items in a workspace needs Pro, PPU or a trial (Microsoft Learn, Fabric licenses). After the trial the workspace report cannot be opened.
+- **Decision.** No Pro licence. S7B gains a task: an Import-mode copy of the report saved as .pbix in the repo, which opens offline in free Power BI Desktop. Screenshots (S8-4) are taken before 2026-10-20 from the live Direct Lake report. The demo video moves after the trial, recorded from the .pbix; its format is decided then.
+
 ---
 
 ## 3. Sprint Specifications
@@ -373,6 +379,7 @@ Each sprint specification below contains: objective, task list with effort estim
 | S7B-4 | Build four core report pages per Phase 3 specification (remaining two post-trial, §2.1) | 3–4 | Report complete |
 | S7B-5 | Save as PBIP for repository inclusion | 0.5 | PBIP exported |
 | S7B-6 | Defense rehearsal: full report walkthrough as stakeholder presentation | 1 | Sprint closed |
+| S7B-7 | Import-mode copy of the report saved as .pbix in the repo (offline demo; §2.2, 2026-10-11) | 1 | .pbix in repo |
 
 **Definition of Done.** `spi_pl_master` executes end-to-end without manual intervention. All five sources resolve into Gold. Power BI report renders all six pages. Author can present the report as a stakeholder-facing demonstration.
 
@@ -500,3 +507,4 @@ The plan defined in this document is engineered to produce that outcome.
 | 1.0 | May 2026 | Initial plan. Authored prior to Sprint 0 kickoff. Living document — sprint outcomes update Sections 3, 4, 5 in place. Estimate revisions are recorded with explicit notes. |
 | 1.1 | 2026-09-29 | Replan after Sprints 3–4 exceeded estimates (§2.1). PROD workspace dropped (ADR-011); report reduced to 4 core pages in-window; video and Sprint 9 moved post-trial; Sprint 8 rewritten; §1.2 records Claude Code as implementation agent. |
 | 1.2 | 2026-10-09 | Replan after Sprint 6 closed early; Sprint 7 10–16 Oct, Sprint 8 17–18 Oct (§2.2). |
+| 1.2 | 2026-10-11 | Power BI licence decision: no Pro; .pbix offline demo; video after trial (§2.2). |
