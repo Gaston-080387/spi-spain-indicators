@@ -161,7 +161,8 @@ sequence across all sources (IPC 1–14, IPI from 15); its natural key is
 by the Gold notebook.
 
 **Pipeline activities:** `cp_` Copy · `nb_` Notebook · `scr_` Script ·
-`lkp_` Lookup · `if_` If Condition · `fail_` Fail.
+`lkp_` Lookup · `if_` If Condition · `fail_` Fail ·
+`inv_` Invoke pipeline.
 
 **Commits:** `[sprint-id] short description` — e.g. `[S3] add log gate query`.
 

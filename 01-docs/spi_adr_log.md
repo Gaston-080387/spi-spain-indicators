@@ -481,6 +481,20 @@ The gate is still required, for two reasons:
 
 Decision unchanged. Implemented per ADR-018.
 
+### Addendum — 2026-10-13 (second): standalone runs only
+
+The previous addendum's statement holds for standalone runs only. When
+invoked by a parent, a child pipeline whose Notebook activity failed and
+whose On-completion Script activity succeeded reported *Succeeded*
+(ADR-018, Validation 2026-10-13).
+
+The gate is therefore needed for failure detection as well as for
+completeness. This restores the original rationale: with every activity
+chained On completion, a source failure does not turn the run red on
+its own.
+
+Decision unchanged.
+
 ## ADR-008 — Warehouse collation: case-insensitive
 
 **Date:** 2026-08-26
@@ -1918,3 +1932,43 @@ connection, and an OAuth connection expires.
 - **Unverified until the first run:** a failed child pipeline fails
   the Legacy Invoke activity when Wait on completion is on. Record
   as an addendum.
+
+### Validation — 2026-10-13: spi_pl_bronze
+
+`spi_pl_bronze`, run standalone, four runs in order.
+
+| Run | Run ID | Child activities | `inv_bronze_energy` | Gate Lookup (logged / failed / sources) | `fail_gate_bronze` | Pipeline |
+|---|---|---|---|---|---|---|
+| Success | `afa8b4a5-…` | All Succeeded | Succeeded | 5 / 0 / none | Not run | Succeeded |
+| Failure (`START_YEAR = 'abc'` in `spi_pl_bronze_energy`) | `386a8476-…` | `nb_bronze_energy` Failed; its Script logged `failed` | Succeeded | 5 / 1 / energy | Ran | Failed |
+| Success (rerun) | `e70fd25c-f7ef-41e1-a143-c99327b5d612` | All Succeeded | Succeeded | 5 / 0 / none | Not run | Succeeded |
+| Success (corrected gate query) | `1a95da3a-bb6c-4113-8216-ac28bcff6691` | All Succeeded | Succeeded | 5 / 0 / none | Not run | Succeeded |
+
+- **Success run.** Five `bronze` log rows, all carrying the parent's
+  `run_id`: the pass-through of Decision 3 works.
+- **Failure run.** The child pipeline run (`76dfed14-…`) reported
+  **Succeeded**, so `inv_bronze_energy` did too. The gate failed the run
+  with `Bronze gate failed. Sources logged: 5/5. Failed: energy`.
+- **Gate query corrected after the rerun.** `failed_count` is now
+  wrapped in `COALESCE(..., 0)`. Without it, a run with no log rows
+  returns `NULL`, and `if_gate_bronze` fails on an expression error
+  instead of raising `GATE_BRONZE`. The first three runs used the
+  original query; the fourth used the corrected one. The corrected
+  query was also verified in the Warehouse:
+
+  | `run_id` | sources_logged / failed_count / failed_sources |
+  |---|---|
+  | The success rerun's | 5 / 0 / none |
+  | One with no log rows | 0 / 0 / none |
+
+**The unverified point in Consequences is closed, with the opposite
+answer.** When invoked, a child pipeline whose Notebook activity fails
+but whose On-completion Script activity succeeds reports *Succeeded*,
+and so does the Invoke activity. This differs from the standalone runs
+in ADR-009 (2026-09-30, 2026-10-06), where the same pipelines reported
+*Failed*. Cause not determined.
+
+**Consequence.** In this design, pipeline status is not a failure
+signal. The log and the gate are. A source failure surfaces only
+through the log row its Script activity writes and the layer gate that
+reads it.

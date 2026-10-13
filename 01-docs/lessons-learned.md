@@ -77,6 +77,15 @@ Findings are recorded here. *Decisions* are recorded in
 - To test a failure path without changing code, pass a base parameter
   of the wrong type (e.g. a String where the notebook expects an int).
   The notebook fails in seconds, before any write.
+- A child pipeline invoked by **Invoke pipeline (Legacy)** whose Notebook
+  activity fails, but whose On-completion Script activity succeeds,
+  reports *Succeeded*, and so does the Invoke activity. Run standalone,
+  the same pipeline reports *Failed*. Cause not determined. Do not rely
+  on child pipeline status to detect a failure (ADR-018, Validation
+  2026-10-13).
+- Child pipelines invoked by Invoke pipeline (Legacy) do not appear as
+  rows of their own in Monitor. Open them from the Invoke activity's
+  link in the parent run.
 
 ---
 

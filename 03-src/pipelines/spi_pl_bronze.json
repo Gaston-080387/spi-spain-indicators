@@ -1,0 +1,231 @@
+{
+    "name": "spi_pl_bronze",
+    "objectId": "a7804a03-1c1f-4b00-aae9-9979adf52ae1",
+    "properties": {
+        "activities": [
+            {
+                "name": "lkp_gate_bronze",
+                "type": "Lookup",
+                "dependsOn": [
+                    {
+                        "activity": "inv_bronze_tax",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "source": {
+                        "type": "DataWarehouseSource",
+                        "sqlReaderQuery": {
+                            "value": "@concat('SELECT COUNT(DISTINCT source) AS sources_logged, COALESCE(SUM(CASE WHEN status IN (''failed'',''running'') THEN 1 ELSE 0 END), 0) AS failed_count, COALESCE(STRING_AGG(CASE WHEN status IN (''failed'',''running'') THEN source END, '', ''), ''none'') AS failed_sources FROM dbo.spi_log_pipeline_execution WHERE layer = ''bronze'' AND run_id = ''', if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id), '''')",
+                            "type": "Expression"
+                        },
+                        "queryTimeout": "02:00:00",
+                        "partitionOption": "None"
+                    },
+                    "datasetSettings": {
+                        "annotations": [],
+                        "connectionSettings": {
+                            "name": "spi_warehouse",
+                            "properties": {
+                                "annotations": [],
+                                "type": "DataWarehouse",
+                                "typeProperties": {
+                                    "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                                    "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                                },
+                                "externalReferences": {
+                                    "connection": "e22a81cb-07ae-4539-8765-fc89bcb0b94d"
+                                }
+                            }
+                        },
+                        "type": "DataWarehouseTable",
+                        "schema": []
+                    }
+                }
+            },
+            {
+                "name": "if_gate_bronze",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "lkp_gate_bronze",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@or(less(activity('lkp_gate_bronze').output.firstRow.sources_logged, 5), greater(activity('lkp_gate_bronze').output.firstRow.failed_count, 0))",
+                        "type": "Expression"
+                    },
+                    "ifFalseActivities": [],
+                    "ifTrueActivities": [
+                        {
+                            "name": "fail_gate_bronze",
+                            "type": "Fail",
+                            "dependsOn": [],
+                            "typeProperties": {
+                                "message": {
+                                    "value": "@concat('Bronze gate failed. Sources logged: ', string(activity('lkp_gate_bronze').output.firstRow.sources_logged), '/5. Failed: ', activity('lkp_gate_bronze').output.firstRow.failed_sources)",
+                                    "type": "Expression"
+                                },
+                                "errorCode": "GATE_BRONZE"
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "name": "inv_bronze_ipc",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "policy": {
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "9795a868-245d-4922-a301-add0c9a12981",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "run_id": {
+                            "value": "@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "inv_bronze_ipi",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "inv_bronze_ipc",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "22813a5e-e833-4a82-a01d-98a4832cd325",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "run_id": {
+                            "value": "@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "inv_bronze_energy",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "inv_bronze_ipi",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "8d8bd1f0-8f38-424e-812d-5192c1a59ccb",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "run_id": {
+                            "value": "@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "inv_bronze_construction",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "inv_bronze_energy",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "05e7facb-bd8a-4259-bf75-4bab33c43a1f",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "run_id": {
+                            "value": "@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "inv_bronze_tax",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "inv_bronze_construction",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "19e0bb0c-92a1-46f1-be3b-b5ac6ab6ed91",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "run_id": {
+                            "value": "@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            }
+        ],
+        "parameters": {
+            "run_id": {
+                "type": "string"
+            }
+        },
+        "lastModifiedByObjectId": "570f0e39-66e1-4394-86cd-20e802978332",
+        "lastPublishTime": "2026-10-13T18:17:38Z"
+    }
+}
