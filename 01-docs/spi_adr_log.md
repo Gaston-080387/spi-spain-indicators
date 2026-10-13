@@ -29,9 +29,9 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 004 | `VARCHAR` over `NVARCHAR` for all persisted Warehouse columns | Accepted | Gold DDL |
 | 005 | Last run ordered by start_time | Accepted | Source ingestion |
 | 006 | Capacity region and SKU decision | Accepted | Capacity strategy |
-| 007 | Bronze ingestion orchestation | Accepted | Bronze pipeline |
+| 007 | Bronze ingestion orchestration | Accepted | Bronze pipeline |
 | 008 | Warehouse collation: case-insensitive  | Accepted | Gold layer |
-| 009 | Logging: target, write mechanisms and status model | Accepted | Infraestructure |
+| 009 | Logging: target, write mechanisms and status model | Accepted | Infrastructure |
 | 010 | Gold load strategy for Dataflow sources: seeded dimensions, delete-by-source + append | Accepted | Gold fact load, Sprint 7 pipeline |
 | 011 | Single workspace: no separate PROD environment | Accepted | Environment strategy |
 | 012 | Bronze notebooks on the Fabric Python runtime | Accepted | Bronze notebooks, Sprint 5 |
@@ -40,6 +40,7 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 015 | Silver period completeness and source anomalies | Accepted | Silver notebooks, Gold validation, report |
 | 016 | Construction Silver: layout parsing and vocabulary | Accepted | Construction Silver notebook, Gold dimensions |
 | 017 | Tax Silver: additive concepts and regional scope | Accepted | Tax Silver notebook, Gold dimensions, report |
+| 018 | Layer orchestration: layer pipelines invoke the per-source pipelines | Accepted | Layer and master pipelines, log gate, Sprint 7 |
 
 ---
 
@@ -460,6 +461,25 @@ development queries. Per-activity attribution requires the Operations
 tab or TimePoint drill-through; not isolated at time of writing.
 
 Decision unchanged.
+
+### Addendum — 2026-10-13: log gate rationale restated
+
+The Rationale says that with every activity chained On completion, a
+pipeline whose source failed reports *Succeeded*. The validations
+contradict this. In ADR-009 (2026-09-30 and 2026-10-06), a failed
+Notebook activity followed by a Script activity chained On completion
+left the pipeline **Failed**, although the Script activity succeeded.
+
+The gate is still required, for two reasons:
+
+- **Completeness.** A source that logged nothing (its Script activity
+  did not run or failed) leaves no `failed` row. Only a count of the
+  sources logged against the sources expected detects it.
+- **One clear failure message.** The gate fails the run with one
+  message naming the failed sources, instead of leaving the reader to
+  find them in the monitoring view.
+
+Decision unchanged. Implemented per ADR-018.
 
 ## ADR-008 — Warehouse collation: case-insensitive
 
@@ -1793,3 +1813,108 @@ receipts.
   netos` = CAP.I + CAP.II + CAP.III net per period for the three kept
   columns.
 - See `lessons-learned.md`, Source data, Tax (AEAT).
+
+## ADR-018 — Layer orchestration: layer pipelines invoke the per-source pipelines
+
+**Date:** 2026-10-13
+**Status:** Accepted
+
+### Context
+
+ADR-007 specifies `spi_pl_bronze` as one pipeline holding the Bronze
+activities directly: 2 Copy + 2 Script + 3 Notebook + the log gate.
+`phase5_dev_plan.md` S7A-1 to S7A-3 describe the layer pipelines the
+same way, as orchestrating notebooks and dataflows.
+
+Sprints 4–6 built something else: one pipeline per source and layer,
+each with its own Script-activity logging (ADR-009). Eight exist:
+`spi_pl_bronze_<source>` for the five sources, and
+`spi_pl_silver_<source>` for Energy, Construction and Tax. Each declares
+a `run_id` parameter and logs with the `run_id` fallback expression
+(ADR-009, 2026-08-28 amendment). All are validated standalone.
+
+The layer pipelines have to be built on one of the two models.
+
+### Decision
+
+**1. Layer pipelines invoke the per-source pipelines.** `spi_pl_bronze`,
+`spi_pl_silver` and `spi_pl_gold` each run one **Invoke pipeline
+(Legacy)** activity per source, with **Wait on completion** on, chained
+**On completion** (ADR-007), then the log gate.
+
+**2. `spi_pl_master` invokes the three layer pipelines**, chained
+**On success** (ADR-007).
+
+**3. One `run_id` per master run.** Every layer pipeline declares a
+`run_id` parameter and passes to each child:
+
+    @{if(empty(pipeline().parameters.run_id),
+         pipeline().RunId,
+         pipeline().parameters.run_id)}
+
+A child pipeline receives its own `RunId`, not the parent's
+(`lessons-learned.md`, Data Pipelines), so the ID has to be passed
+down explicitly. A master run therefore logs one `run_id`. A layer
+pipeline run standalone logs its own.
+
+**4. Legacy Invoke, not the current one.** The Legacy activity calls a
+pipeline in the same workspace and needs no connection. The current
+Invoke pipeline activity needs one, and an OAuth connection holds a
+delegated user token that expires (`lessons-learned.md`,
+Authentication and connections).
+
+**5. Log gate per layer.** After the last Invoke, each layer pipeline
+runs a Lookup on `spi_log_pipeline_execution` for the current `run_id`
+and the layer. A Fail activity fails the run, with a message listing the
+source names (`STRING_AGG`), if:
+
+- any row has `status` `failed` or `running` (`running` is a defensive
+  check, ADR-009, 2026-09-30 addendum); or
+- fewer sources logged than expected.
+
+Expected sources: 5 for `spi_pl_bronze`; 5 for `spi_pl_silver` (IPC
+and IPI through their new per-source pipelines). `spi_pl_gold` is
+decided when it is built (see Consequences).
+
+### Rationale
+
+- **Logging stays in one place per source.** Each per-source pipeline
+  already logs its own outcome. The layer pipeline adds orchestration
+  and the gate, nothing else.
+- **Per-source pipelines stay useful.** They remain the unit of
+  standalone runs, reruns and failure testing, as in the ADR-009
+  validations.
+- **No connection to expire.** The Legacy activity runs without one,
+  so the orchestration has no dependency on a user token.
+- **Gate value restated** in the ADR-007 addendum, 2026-10-13:
+  completeness, and one failure message naming the failed sources.
+
+### Alternatives considered
+
+**Notebooks and dataflows called directly from the layer pipeline**
+(the ADR-007 model). Rejected: every source's Script logging would be
+duplicated in the layer pipeline, and the per-source pipelines would
+become dead code.
+
+**The current Invoke pipeline activity.** Rejected: it needs a
+connection, and an OAuth connection expires.
+
+### Consequences
+
+- **Supersedes** the activity list in ADR-007 Consequences
+  ("8 activities") and the descriptions of `phase5_dev_plan.md` S7A-1
+  to S7A-3.
+- Per-source pipelines stay runnable standalone.
+- IPC and IPI Silver and Gold get per-source pipelines in this sprint,
+  wrapping their dataflows. The deferred `DELETE … WHERE source_key`
+  step and dataflow logging (ADR-010) go there.
+- **Decided when `spi_pl_gold` is built:** Gold logging granularity
+  (the procedure loads three sources in one call) and whether the
+  dimension dataflow is refreshed. The gate's expected source count
+  for Gold follows from the first.
+- **Known gap.** `error_message` is `VARCHAR(4000)`, and no existing
+  Script activity truncates it. An error longer than that could make
+  the log INSERT fail. New Script activities use `LEFT(..., 4000)`.
+- **Unverified until the first run:** a failed child pipeline fails
+  the Legacy Invoke activity when Wait on completion is on. Record
+  as an addendum.
