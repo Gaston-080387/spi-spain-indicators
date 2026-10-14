@@ -1972,3 +1972,52 @@ in ADR-009 (2026-09-30, 2026-10-06), where the same pipelines reported
 signal. The log and the gate are. A source failure surfaces only
 through the log row its Script activity writes and the layer gate that
 reads it.
+
+### Validation — 2026-10-14: spi_pl_silver
+
+`spi_pl_silver`, run standalone, one run:
+`1fb430a2-e277-44ad-b88e-dd853b9808ec`. Every activity Succeeded:
+the five Invoke activities, `lkp_gate_silver`, and `if_gate_silver`
+(`fail_gate_silver` not run).
+
+Five `silver` log rows, all carrying the parent's `run_id`.
+
+| Source | `rows_processed` |
+|---|---|
+| tax | 3540 |
+| construction | 1338 |
+| energy | 457 |
+| ipc | NULL |
+| ipi | NULL |
+
+IPC and IPI are `NULL` by design (addendum below).
+
+**Forced failure not repeated.** The gate is the same pattern as
+Bronze, which was validated against a forced failure on 2026-10-13:
+same query apart from the layer, same condition, same Fail activity.
+
+### Addendum — 2026-10-14: Silver dataflow steps log no row count
+
+`spi_pl_silver_ipc` and `spi_pl_silver_ipi` wrap their dataflows in a
+Dataflow activity (`df_silver_ipc`, `df_silver_ipi`) followed by an
+On-completion Script activity. The Dataflow activity output exposes
+only `jobInstanceId`, `rootActivityId` and `executionDuration`. It has
+no row count.
+
+**Decision 2026-10-14:** `rows_processed` is `NULL` for Silver dataflow
+steps. Counting the Silver table from the Script activity was
+rejected: the count is cross-database (Warehouse to the Lakehouse SQL
+analytics endpoint) and could read a stale Silver table (ADR-014,
+point b).
+
+**Unverified:** that a failed Dataflow activity exposes
+`Error.message`. If it does not, the Script activity fails, no log row
+is written, and the Silver gate fails on completeness
+(`sources_logged < 5`) rather than on `failed_count`. The failure is
+still caught, without its message.
+
+Both Dataflow activities have `executeMashupQueriesOnly: true`. Run
+`1fb430a2` still wrote the Silver tables: the dataflow refresh details
+in Monitor show `WriteToDataDestination` Succeeded, IPC 12,432 rows
+written, IPI 8,379 rows written. Row counts are visible in Monitor but
+not in the activity output, so `rows_processed` stays `NULL`.

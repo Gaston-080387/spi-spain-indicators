@@ -1,0 +1,77 @@
+{
+    "name": "spi_pl_silver_ipi",
+    "objectId": "5ba95c71-7464-488b-bf2b-75a77e4027bd",
+    "properties": {
+        "activities": [
+            {
+                "name": "scr_log_silver_ipi",
+                "type": "Script",
+                "dependsOn": [
+                    {
+                        "activity": "df_silver_ipi",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "linkedService": {
+                    "name": "spi_warehouse",
+                    "properties": {
+                        "annotations": [],
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                        }
+                    }
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "Query",
+                            "text": {
+                                "value": "INSERT INTO dbo.spi_log_pipeline_execution\n      (run_id, pipeline_name, layer, source, status, start_time, end_time, error_message, rows_processed)\n  VALUES\n      ('@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}',\n       'spi_pl_silver_ipi',\n       'silver',\n       'ipi',\n       '@{if(equals(activity('df_silver_ipi').Status, 'Succeeded'), 'success', 'failed')}',\n       '@{utcnow()}',\n       '@{utcnow()}',\n       @{if(equals(activity('df_silver_ipi').Status, 'Succeeded'), 'NULL', concat('LEFT(''',\n  replace(string(activity('df_silver_ipi').Error.message), '''', ''''''), ''', 4000)'))},\n       NULL);",
+                                "type": "Expression"
+                            }
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            },
+            {
+                "name": "df_silver_ipi",
+                "type": "RefreshDataflow",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "dataflowId": "46ea17b3-645b-4ad2-9c5e-85ca517f4522",
+                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2",
+                    "notifyOption": "NoNotification",
+                    "dataflowType": "DataflowFabric",
+                    "executeMashupQueriesOnly": true
+                }
+            }
+        ],
+        "parameters": {
+            "run_id": {
+                "type": "string"
+            }
+        },
+        "lastModifiedByObjectId": "570f0e39-66e1-4394-86cd-20e802978332",
+        "lastPublishTime": "2026-10-14T17:41:00Z"
+    }
+}

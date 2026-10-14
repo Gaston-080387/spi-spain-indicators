@@ -86,6 +86,10 @@ Findings are recorded here. *Decisions* are recorded in
 - Child pipelines invoked by Invoke pipeline (Legacy) do not appear as
   rows of their own in Monitor. Open them from the Invoke activity's
   link in the parent run.
+- The Dataflow activity output exposes only `jobInstanceId`,
+  `rootActivityId` and `executionDuration`. There is no row count, so
+  a pipeline cannot log rows processed by a dataflow from the activity
+  output (ADR-018, addendum 2026-10-14).
 
 ---
 
