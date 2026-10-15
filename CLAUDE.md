@@ -46,10 +46,10 @@ Dimensions are seeded by `spi_df_gold_dimensions`. Fact loads use
 delete-by-source then Append (ADR-010). Validated: Gold rows equal
 Silver rows, zero null keys, zero duplicate composite keys.
 
-**Deferred into Sprint 7** (need a pipeline around the dataflows):
-the `DELETE … WHERE source_key` step before each Gold dataflow, and
-logging for Silver and Gold dataflows. Until then the DELETE is run
-manually before each Gold refresh.
+**Deferred into Sprint 7 — done** (ADR-018, addendum 2026-10-15):
+`spi_pl_gold` runs the `DELETE … WHERE source_key` step before each
+IPC and IPI Gold dataflow. The Silver dataflows are logged by
+`spi_pl_silver_ipc` / `_ipi`, the Gold dataflows by `spi_pl_gold`.
 
 **Sprint 7 notes:** `spi_dim_indicator.indicator_name` for IPC keys
 1–13 contains a double space (`IPC -  Alimentos…`). Display only; not a
@@ -61,10 +61,10 @@ period past the calendar's last row loads without error and has no
 calendar row (silent gap). `dbo.spi_sp_gold_load` looks it up (decision
 2026-10-07).
 
-ADR-014 point (b) is open: the SQL analytics endpoint may lag behind
-Silver writes, so `dbo.spi_sp_gold_load` may read stale Silver.
-Mitigation: refresh the SQL endpoint metadata in `spi_pl_gold`, after
-Silver and before the procedure.
+ADR-014 point (b) is closed (addendum 2026-10-15): the SQL analytics
+endpoint may lag behind Silver writes, so `spi_pl_gold` runs
+`spi_nb_gold_refresh_sql_endpoint` before `dbo.spi_sp_gold_load`. A
+failed refresh fails the Gold gate.
 
 **Sprint 5 (Bronze notebooks: Energy, Construction, Tax) — closed
 2026-10-03.** Three Bronze notebooks and pipelines

@@ -33,8 +33,9 @@
        2026-10-06).
      - Touch IPC or IPI rows (source_key 1 and 2). They are loaded by
        spi_df_gold_ipc and spi_df_gold_ipi.
-     - Refresh the SQL analytics endpoint. Silver is read as the
-       endpoint sees it (ADR-014, open point (b)).
+     - Refresh the SQL analytics endpoint. spi_pl_gold does, in
+       nb_gold_refresh_sql_endpoint before this procedure runs
+       (ADR-014, point (b), closed 2026-10-15).
    ===================================================================== */
 
 CREATE OR ALTER PROCEDURE dbo.spi_sp_gold_load

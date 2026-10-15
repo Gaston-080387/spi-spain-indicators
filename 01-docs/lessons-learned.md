@@ -90,6 +90,15 @@ Findings are recorded here. *Decisions* are recorded in
   `rootActivityId` and `executionDuration`. There is no row count, so
   a pipeline cannot log rows processed by a dataflow from the activity
   output (ADR-018, addendum 2026-10-14).
+- **Edit JSON code** rejects a paste whose top-level `objectId` is not
+  the pipeline's own: `Updating object id is not allowed from JSON
+  editor.` A JSON without `objectId` is rejected the same way. Fix: add
+  the pipeline's own `objectId` right after `name` before pasting
+  (`spi_pl_gold`, 2026-10-15).
+- Consequence for the rebuild in the new capacity: every pipeline JSON
+  in `03-src/pipelines/` carries the old pipeline's `objectId`. Create
+  each pipeline first, then replace `objectId` with the new pipeline's
+  own before pasting.
 
 ---
 
@@ -155,6 +164,17 @@ and issues COPY INTO.
   succeeded (the output shows `ExitValue: …`). In a pipeline run, the
   Notebook activity reports Succeeded and passes the value to the next
   activity. The ✗ is expected and is not an error.
+- `notebookutils.notebook.exit()` drops log output written in the same
+  cell. In `spi_nb_gold_refresh_sql_endpoint` (2026-10-15), with `exit()`
+  only the first `logging` INFO line appeared; without it, all lines
+  appeared. Flushing every logging handler and `sys.stdout` /
+  `sys.stderr` just before `exit()` did not help. Fix: run the work in
+  one cell (`result = main()`) and call
+  `notebookutils.notebook.exit(json.dumps(result))` alone in the next
+  cell. All log lines are kept. Confirmed 2026-10-15.
+- The three Silver notebooks (`spi_nb_silver_energy` / `_construction` /
+  `_tax`) still call `main()` and `exit()` in the same cell. To be fixed
+  later.
 - `xlrd` is not in the Python runtime (`ModuleNotFoundError`). An inline
   `%pip install xlrd==2.0.1` in the notebook works, including in pipeline
   runs. No Fabric Environment is needed.

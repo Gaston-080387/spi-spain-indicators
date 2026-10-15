@@ -1,0 +1,424 @@
+{
+    "name": "spi_pl_gold",
+    "objectId": "55ef226b-d74c-4869-8be0-b048f4f941b7",
+    "properties": {
+        "activities": [
+            {
+                "name": "scr_delete_gold_ipc",
+                "type": "Script",
+                "dependsOn": [],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "linkedService": {
+                    "name": "spi_warehouse",
+                    "properties": {
+                        "annotations": [],
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                        }
+                    }
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "NonQuery",
+                            "text": {
+                                "value": "DELETE FROM dbo.spi_fact_indicators WHERE source_key = 1;",
+                                "type": "Expression"
+                            }
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            },
+            {
+                "name": "df_gold_ipc",
+                "type": "RefreshDataflow",
+                "dependsOn": [
+                    {
+                        "activity": "scr_delete_gold_ipc",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "dataflowId": "6cb21ab8-9fb9-427b-bcb0-62a7e66cdbc3",
+                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2",
+                    "notifyOption": "NoNotification",
+                    "dataflowType": "DataflowFabric",
+                    "executeMashupQueriesOnly": true
+                }
+            },
+            {
+                "name": "scr_log_gold_ipc",
+                "type": "Script",
+                "dependsOn": [
+                    {
+                        "activity": "df_gold_ipc",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "linkedService": {
+                    "name": "spi_warehouse",
+                    "properties": {
+                        "annotations": [],
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                        }
+                    }
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "Query",
+                            "text": {
+                                "value": "INSERT INTO dbo.spi_log_pipeline_execution\n      (run_id, pipeline_name, layer, source, status, start_time, end_time, error_message, rows_processed)\n  VALUES\n      ('@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}',\n       'spi_pl_gold',\n       'gold',\n       'ipc',\n       '@{if(and(equals(activity('scr_delete_gold_ipc').Status, 'Succeeded'), equals(activity('df_gold_ipc').Status, 'Succeeded')), 'success', 'failed')}',\n       '@{utcnow()}',\n       '@{utcnow()}',\n       @{if(not(equals(activity('scr_delete_gold_ipc').Status, 'Succeeded')), concat('LEFT(''DELETE: ', replace(string(activity('scr_delete_gold_ipc').Error.message), '''', ''''''), ''', 4000)'), if(equals(activity('df_gold_ipc').Status, 'Succeeded'), 'NULL', concat('LEFT(''', replace(string(activity('df_gold_ipc').Error.message), '''', ''''''), ''', 4000)')))},\n       NULL);",
+                                "type": "Expression"
+                            }
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            },
+            {
+                "name": "scr_delete_gold_ipi",
+                "type": "Script",
+                "dependsOn": [
+                    {
+                        "activity": "scr_log_gold_ipc",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "linkedService": {
+                    "name": "spi_warehouse",
+                    "properties": {
+                        "annotations": [],
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                        }
+                    }
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "NonQuery",
+                            "text": {
+                                "value": "DELETE FROM dbo.spi_fact_indicators WHERE source_key = 2;",
+                                "type": "Expression"
+                            }
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            },
+            {
+                "name": "df_gold_ipi",
+                "type": "RefreshDataflow",
+                "dependsOn": [
+                    {
+                        "activity": "scr_delete_gold_ipi",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "dataflowId": "5ec5cbee-80a6-45d2-aa7d-c2e51124cc53",
+                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2",
+                    "notifyOption": "NoNotification",
+                    "dataflowType": "DataflowFabric",
+                    "executeMashupQueriesOnly": true
+                }
+            },
+            {
+                "name": "scr_log_gold_ipi",
+                "type": "Script",
+                "dependsOn": [
+                    {
+                        "activity": "df_gold_ipi",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "linkedService": {
+                    "name": "spi_warehouse",
+                    "properties": {
+                        "annotations": [],
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                        }
+                    }
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "Query",
+                            "text": {
+                                "value": "INSERT INTO dbo.spi_log_pipeline_execution\n      (run_id, pipeline_name, layer, source, status, start_time, end_time, error_message, rows_processed)\n  VALUES\n      ('@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}',\n       'spi_pl_gold',\n       'gold',\n       'ipi',\n       '@{if(and(equals(activity('scr_delete_gold_ipi').Status, 'Succeeded'), equals(activity('df_gold_ipi').Status, 'Succeeded')), 'success', 'failed')}',\n       '@{utcnow()}',\n       '@{utcnow()}',\n       @{if(not(equals(activity('scr_delete_gold_ipi').Status, 'Succeeded')), concat('LEFT(''DELETE: ', replace(string(activity('scr_delete_gold_ipi').Error.message), '''', ''''''), ''', 4000)'), if(equals(activity('df_gold_ipi').Status, 'Succeeded'), 'NULL', concat('LEFT(''', replace(string(activity('df_gold_ipi').Error.message), '''', ''''''), ''', 4000)')))},\n       NULL);",
+                                "type": "Expression"
+                            }
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            },
+            {
+                "name": "nb_gold_refresh_sql_endpoint",
+                "type": "TridentNotebook",
+                "dependsOn": [
+                    {
+                        "activity": "scr_log_gold_ipi",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "notebookId": "db02c520-4b6f-4c6c-a654-ab60e499fa5b",
+                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                }
+            },
+            {
+                "name": "scr_gold_load",
+                "type": "Script",
+                "dependsOn": [
+                    {
+                        "activity": "nb_gold_refresh_sql_endpoint",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "linkedService": {
+                    "name": "spi_warehouse",
+                    "properties": {
+                        "annotations": [],
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                        }
+                    }
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "Query",
+                            "text": {
+                                "value": "EXEC dbo.spi_sp_gold_load;",
+                                "type": "Expression"
+                            }
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            },
+            {
+                "name": "scr_log_gold_proc",
+                "type": "Script",
+                "dependsOn": [
+                    {
+                        "activity": "scr_gold_load",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "linkedService": {
+                    "name": "spi_warehouse",
+                    "properties": {
+                        "annotations": [],
+                        "type": "DataWarehouse",
+                        "typeProperties": {
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                        }
+                    }
+                },
+                "typeProperties": {
+                    "scripts": [
+                        {
+                            "type": "Query",
+                            "text": {
+                                "value": "INSERT INTO dbo.spi_log_pipeline_execution\n      (run_id, pipeline_name, layer, source, status, start_time, end_time, error_message, rows_processed)\n  VALUES\n      ('@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}',\n       'spi_pl_gold', 'gold', 'energy',\n       '@{if(and(equals(activity('nb_gold_refresh_sql_endpoint').Status, 'Succeeded'), equals(activity('scr_gold_load').Status, 'Succeeded')), 'success', 'failed')}',\n       '@{utcnow()}', '@{utcnow()}',\n       @{if(not(equals(activity('nb_gold_refresh_sql_endpoint').Status, 'Succeeded')), concat('LEFT(''SQL endpoint refresh: ', replace(string(activity('nb_gold_refresh_sql_endpoint').Error.message), '''', ''''''), ''', 4000)'), if(equals(activity('scr_gold_load').Status, 'Succeeded'), 'NULL', concat('LEFT(''', replace(string(activity('scr_gold_load').Error.message), '''', ''''''), ''', 4000)')))},\n       @{if(and(equals(activity('nb_gold_refresh_sql_endpoint').Status, 'Succeeded'), equals(activity('scr_gold_load').Status, 'Succeeded')), string(coalesce(activity('scr_gold_load').output?.resultSets, json('[{\"rows\":[{}]}]'))[0].rows[0]?.rows_energy), 'NULL')}),\n      ('@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}',\n       'spi_pl_gold', 'gold', 'construction',\n       '@{if(and(equals(activity('nb_gold_refresh_sql_endpoint').Status, 'Succeeded'), equals(activity('scr_gold_load').Status, 'Succeeded')), 'success', 'failed')}',\n       '@{utcnow()}', '@{utcnow()}',\n       @{if(not(equals(activity('nb_gold_refresh_sql_endpoint').Status, 'Succeeded')), concat('LEFT(''SQL endpoint refresh: ', replace(string(activity('nb_gold_refresh_sql_endpoint').Error.message), '''', ''''''), ''', 4000)'), if(equals(activity('scr_gold_load').Status, 'Succeeded'), 'NULL', concat('LEFT(''', replace(string(activity('scr_gold_load').Error.message), '''', ''''''), ''', 4000)')))},\n       @{if(and(equals(activity('nb_gold_refresh_sql_endpoint').Status, 'Succeeded'), equals(activity('scr_gold_load').Status, 'Succeeded')), string(coalesce(activity('scr_gold_load').output?.resultSets, json('[{\"rows\":[{}]}]'))[0].rows[0]?.rows_construction), 'NULL')}),\n      ('@{if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id)}',\n       'spi_pl_gold', 'gold', 'tax',\n       '@{if(and(equals(activity('nb_gold_refresh_sql_endpoint').Status, 'Succeeded'), equals(activity('scr_gold_load').Status, 'Succeeded')), 'success', 'failed')}',\n       '@{utcnow()}', '@{utcnow()}',\n       @{if(not(equals(activity('nb_gold_refresh_sql_endpoint').Status, 'Succeeded')), concat('LEFT(''SQL endpoint refresh: ', replace(string(activity('nb_gold_refresh_sql_endpoint').Error.message), '''', ''''''), ''', 4000)'), if(equals(activity('scr_gold_load').Status, 'Succeeded'), 'NULL', concat('LEFT(''', replace(string(activity('scr_gold_load').Error.message), '''', ''''''), ''', 4000)')))},\n       @{if(and(equals(activity('nb_gold_refresh_sql_endpoint').Status, 'Succeeded'), equals(activity('scr_gold_load').Status, 'Succeeded')), string(coalesce(activity('scr_gold_load').output?.resultSets, json('[{\"rows\":[{}]}]'))[0].rows[0]?.rows_tax), 'NULL')});",
+                                "type": "Expression"
+                            }
+                        }
+                    ],
+                    "scriptBlockExecutionTimeout": "02:00:00"
+                }
+            },
+            {
+                "name": "lkp_gate_gold",
+                "type": "Lookup",
+                "dependsOn": [
+                    {
+                        "activity": "scr_log_gold_proc",
+                        "dependencyConditions": [
+                            "Completed"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "timeout": "0.12:00:00",
+                    "retry": 0,
+                    "retryIntervalInSeconds": 30,
+                    "secureOutput": false,
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "source": {
+                        "type": "DataWarehouseSource",
+                        "sqlReaderQuery": {
+                            "value": "@concat('SELECT COUNT(DISTINCT source) AS sources_logged, COALESCE(SUM(CASE WHEN status IN (''failed'',''running'') THEN 1 ELSE 0 END), 0) AS failed_count, COALESCE(STRING_AGG(CASE WHEN status IN (''failed'',''running'') THEN source END, '', ''), ''none'') AS failed_sources FROM dbo.spi_log_pipeline_execution WHERE layer = ''gold'' AND run_id = ''', if(empty(pipeline().parameters.run_id), pipeline().RunId, pipeline().parameters.run_id), '''')",
+                            "type": "Expression"
+                        },
+                        "queryTimeout": "02:00:00",
+                        "partitionOption": "None"
+                    },
+                    "datasetSettings": {
+                        "annotations": [],
+                        "connectionSettings": {
+                            "name": "spi_warehouse",
+                            "properties": {
+                                "annotations": [],
+                                "type": "DataWarehouse",
+                                "typeProperties": {
+                                    "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
+                                    "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
+                                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                                },
+                                "externalReferences": {
+                                    "connection": "e22a81cb-07ae-4539-8765-fc89bcb0b94d"
+                                }
+                            }
+                        },
+                        "type": "DataWarehouseTable",
+                        "schema": []
+                    }
+                }
+            },
+            {
+                "name": "if_gate_gold",
+                "type": "IfCondition",
+                "dependsOn": [
+                    {
+                        "activity": "lkp_gate_gold",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "typeProperties": {
+                    "expression": {
+                        "value": "@or(less(activity('lkp_gate_gold').output.firstRow.sources_logged, 5), greater(activity('lkp_gate_gold').output.firstRow.failed_count, 0))",
+                        "type": "Expression"
+                    },
+                    "ifFalseActivities": [],
+                    "ifTrueActivities": [
+                        {
+                            "name": "fail_gate_gold",
+                            "type": "Fail",
+                            "dependsOn": [],
+                            "typeProperties": {
+                                "message": {
+                                    "value": "@concat('Gold gate failed. Sources logged: ', string(activity('lkp_gate_gold').output.firstRow.sources_logged), '/5. Failed: ', activity('lkp_gate_gold').output.firstRow.failed_sources)",
+                                    "type": "Expression"
+                                },
+                                "errorCode": "GATE_GOLD"
+                            }
+                        }
+                    ]
+                }
+            }
+        ],
+        "parameters": {
+            "run_id": {
+                "type": "string"
+            }
+        },
+        "lastModifiedByObjectId": "570f0e39-66e1-4394-86cd-20e802978332",
+        "lastPublishTime": "2026-10-15T16:37:53Z"
+    }
+}

@@ -961,6 +961,43 @@ Replace); the dataflow is the owner and every refresh overwrites the
 table, so the DDL `INSERT` is the initial seed only and region rows are
 changed in the dataflow.
 
+### Addendum — 2026-10-15: calendar starts in 1975
+
+**Finding.** In the `spi_pl_gold` success run `cbec05e6-…`, 2,100 IPI
+fact rows have a `calendar_key` with no row in `spi_dim_calendar`:
+1975-01 to 1999-12, 7 series × 300 months. The calendar starts at
+2000-01 (Decision 2), and IPI history starts in 1975.
+
+**Why it loaded without error.** The IPC and IPI Gold dataflows compute
+`calendar_key` as `year * 100 + month` (Decision 3) instead of looking
+it up, so a period outside the calendar loads with a valid-looking key
+and no matching row. The 2026-09-28 validation checked null keys, and a
+computed key is never null. `dbo.spi_sp_gold_load` looks the key up and
+throws on a miss, so Energy, Construction and Tax cannot load this way.
+
+**Decision.** Extend the calendar: `StartYear = 1975` in
+`spi_df_gold_dimensions`. The calendar runs from 1975-01 to December of
+the current year.
+
+**Correction to Decision 2.** Read "1975-01 to December of the current
+year" for "2000-01 to December of the current year".
+
+**Consequences.**
+
+- 300 calendar rows added. Existing keys do not change: `calendar_key`
+  is `year * 100 + month`, so extending the range renumbers nothing
+  (Decision 2).
+- No fact reload is needed. The 2,100 rows already carry the right
+  keys; they match once the dimension dataflow is refreshed.
+- The computed key in the IPC and IPI Gold dataflows is unchanged. A
+  period outside the calendar still loads without error. Detection
+  moves to validation: an orphan-calendar-key check (fact rows with no
+  matching calendar row) is added to the master-run validation checks.
+
+**Verified 2026-10-15**, after refreshing `spi_df_gold_dimensions`:
+`spi_dim_calendar` runs from 197501 to 202612, 624 rows (52 years ×
+12). 0 fact rows without a calendar row, for all five sources.
+
 ## ADR-011 — Single workspace: no separate PROD environment
 
 **Date:** 2026-09-29
@@ -1469,6 +1506,30 @@ documented Fabric Warehouse transaction behaviour, not on a test.
 
 Point (b), SQL analytics endpoint lag after Silver writes, stays open
 for Sprint 7 (`spi_pl_gold`).
+
+### Addendum — 2026-10-15: point (b) closed
+
+**Mitigation built.** `spi_nb_gold_refresh_sql_endpoint` (Python
+runtime, ADR-012) calls the Fabric REST API
+`POST /v1/workspaces/{workspaceId}/sqlEndpoints/{sqlEndpointId}/refreshMetadata`
+for the three Silver tables the procedure reads, waits for the
+long-running operation, and raises if any table reports `Failure` or is
+missing from the result. The workspace and SQL endpoint IDs are resolved
+at runtime. `NotRun` is not a failure. In `spi_pl_gold` it runs after
+the IPC and IPI steps and before `scr_gold_load` (ADR-018, addendum
+2026-10-15).
+
+**First run, 2026-10-15 15:49 UTC.** All three Silver tables returned
+`NotRun`, with last successful syncs on 2026-10-14 between 17:56:23Z
+and 18:01:33Z, right after the Silver writes. `NotRun` therefore means
+the table was already in sync: the endpoint had caught up on its own
+before the refresh was called. The table names came back without the
+`dbo.` prefix (`spi_lakehouse` has no schemas).
+
+**Point (b) closed.** The endpoint is refreshed before every procedure
+run, and a failed refresh marks the three Gold log rows `failed`, which
+fails the Gold gate (ADR-018, addendum 2026-10-15). The procedure's
+empty-source check (step 2d) stays as a second guard.
 
 ## ADR-015 — Silver period completeness and source anomalies
 
@@ -2021,3 +2082,110 @@ Both Dataflow activities have `executeMashupQueriesOnly: true`. Run
 in Monitor show `WriteToDataDestination` Succeeded, IPC 12,432 rows
 written, IPI 8,379 rows written. Row counts are visible in Monitor but
 not in the activity output, so `rows_processed` stays `NULL`.
+
+### Addendum — 2026-10-15: `spi_pl_gold` is flat
+
+**Deviation from Decision 1.** `spi_pl_gold` has no per-source
+pipelines. It holds the activities directly, chained **On completion**,
+then the log gate:
+
+    scr_delete_gold_ipc → df_gold_ipc → scr_log_gold_ipc
+    → scr_delete_gold_ipi → df_gold_ipi → scr_log_gold_ipi
+    → nb_gold_refresh_sql_endpoint → scr_gold_load → scr_log_gold_proc
+    → lkp_gate_gold → if_gate_gold [True: fail_gate_gold, GATE_GOLD]
+
+`dbo.spi_sp_gold_load` loads Energy, Construction and Tax in one call
+(ADR-014), so those three sources have no per-source Gold step to wrap.
+The `DELETE … WHERE source_key` deferred by ADR-010 runs here, as a
+Script activity before each IPC and IPI Gold dataflow. `spi_pl_gold`
+declares `run_id` and uses the Decision 3 fallback.
+
+**Logging granularity: 5 rows** (closes the first point left open in
+Consequences). One row per source, all written by `spi_pl_gold`:
+
+| Row(s) | Written by | `rows_processed` |
+|---|---|---|
+| `ipc`, `ipi` | `scr_log_gold_ipc`, `scr_log_gold_ipi` | `NULL` (addendum 2026-10-14) |
+| `energy`, `construction`, `tax` | `scr_log_gold_proc`, three rows with one status | Per source, from the procedure's result row |
+
+The gate expects 5 sources.
+
+**Dimension dataflow not refreshed** by `spi_pl_gold` (closes the
+second point). `spi_df_gold_dimensions` is refreshed outside the
+pipelines. Consequence: `spi_dim_calendar` ends in December
+of the year of its last refresh (ADR-010, addendum 2026-10-15).
+
+**Combined status.** A log row is `success` only if both activities
+behind it succeeded:
+
+| Row(s) | Activities |
+|---|---|
+| `ipc` / `ipi` | The source's DELETE and its Gold dataflow |
+| `energy`, `construction`, `tax` | `nb_gold_refresh_sql_endpoint` and `scr_gold_load` |
+
+The error message is the first failed activity's, prefixed `DELETE: `
+or `SQL endpoint refresh: `. A failed dataflow or procedure is reported
+without a prefix, as in the Silver log rows. All links stay On
+completion: On success would skip every later activity, the gate
+included.
+
+**Accepted risks.** Both follow from On completion; in both, the log
+row is `failed` and the gate fails the run.
+
+- **A failed DELETE** does not stop the dataflow, whose Append then
+  duplicates that source's fact rows until the next run. The next run
+  removes them (delete-by-source is idempotent, ADR-010).
+- **A failed SQL endpoint refresh** does not stop the procedure, which
+  may then load from stale Silver (ADR-014, point (b)).
+
+### Validation — 2026-10-15: `spi_pl_gold`
+
+`spi_pl_gold`, run standalone, three runs in order.
+
+| Run | Run ID | Result |
+|---|---|---|
+| Success | `cbec05e6-1fcf-490f-95ee-3312b2701c08` | Gold = Silver for all five sources |
+| Rerun | `9958d92e-4312-43b8-9ae6-975acccfd151` | Identical counts, 0 duplicate fact keys: idempotent |
+| Forced failure | `1118f094-4365-4588-88a0-e8697ee4fc1b` | `GATE_GOLD` raised, pipeline Failed, Gold unchanged |
+
+Fact rows per source after the success run, equal to Silver:
+
+| IPC (1) | IPI (2) | Energy (3) | Construction (4) | Tax (5) |
+|---|---|---|---|---|
+| 12,432 | 8,379 | 457 | 1,338 | 3,540 |
+
+The success run also surfaced 2,100 IPI fact rows with no calendar row
+(1975-01 to 1999-12). Resolved by extending the calendar (ADR-010,
+addendum 2026-10-15).
+
+**Forced failure.** The ADR-014 method: `indicator_category` of
+`indicator_key` 22 (Energy) suffixed with `_x`.
+
+- `scr_gold_load` Failed. `scr_log_gold_proc` Succeeded and wrote three
+  `failed` rows (energy, construction, tax) carrying the 50001 message,
+  with `rows_processed` `NULL`.
+- The `ipc` and `ipi` rows were `success`.
+- `fail_gate_gold` raised `GATE_GOLD`:
+  `Gold gate failed. Sources logged: 5/5. Failed: energy, construction, tax`.
+  The pipeline reported Failed.
+- Gold was unchanged: the procedure throws before its transaction.
+- Indicator 22 was restored by refreshing `spi_df_gold_dimensions`.
+
+**Verified by these runs.**
+
+- The null-safe `rows_processed` expression does not error when
+  `scr_gold_load` failed and has no result set (`scr_log_gold_proc`
+  Succeeded in the forced failure).
+- `rows_processed` for the procedure rows reads the result row
+  correctly (`output.resultSets[0].rows[0].<column>`): the success run
+  logged energy 457, construction 1,338, tax 3,540, and the rerun
+  logged the same values.
+- The Gold Dataflow activities write their destination with
+  `executeMashupQueriesOnly: true`, as the Silver ones do (addendum
+  2026-10-14): IPC and IPI Gold equal Silver.
+
+**Not exercised:** a failed DELETE, a failed dataflow, a failed SQL
+endpoint refresh. Their status expressions follow the same pattern as
+the procedure's, which the forced failure exercised. Whether a failed
+Dataflow activity exposes `Error.message` remains open (addendum
+2026-10-14).

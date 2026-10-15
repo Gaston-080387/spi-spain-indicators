@@ -7,6 +7,7 @@ T-SQL for `spi_warehouse`, run in the Warehouse SQL editor.
 | `spi_gold_ddl.sql` | The star schema: `spi_dim_indicator`, `spi_dim_region`, `spi_dim_calendar`, `spi_dim_source` and `spi_fact_indicators`, with `NOT ENFORCED` keys. Seeds `spi_dim_source`, and the initial `spi_dim_region` rows. |
 | `spi_log_table_ddl.sql` | `dbo.spi_log_pipeline_execution`, written by the pipelines' Script activities (ADR-009). |
 | `spi_sp_gold_load.sql` | `dbo.spi_sp_gold_load` (`CREATE OR ALTER`): loads the fact for Energy, Construction and Tax from their Silver tables, delete-by-source then insert in one transaction (ADR-014). |
+| `spi_validation_checks.sql` | Nothing. Read-only checks after a master or `spi_pl_gold` run: fact rows vs Silver per source, duplicate fact keys, orphan calendar, indicator and region keys, calendar range. Each query states its expected result. |
 
 **Run order.**
 

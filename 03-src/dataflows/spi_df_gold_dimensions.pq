@@ -15,11 +15,12 @@ in
 
 /* spi_dim_calendar */
 let
-    StartYear   = 2000,
+    // IPI history starts in 1975 (ADR-010, addendum 2026-10-15)
+    StartYear   = 1975,
     EndYear     = Date.Year(DateTime.LocalNow()),
     CurrentYear = EndYear,
 
-    // One row per month: 2000-01 through December of the current year
+    // One row per month: 1975-01 through December of the current year
     MonthStarts = List.Generate(
         () => #date(StartYear, 1, 1),
         each _ <= #date(EndYear, 12, 1),
