@@ -1,6 +1,6 @@
 """
-spi_nb_bronze_ipi  —  IPI Bronze loader
-========================================
+ipi_bronze_load  —  IPI Bronze loader
+=====================================
 Portfolio project : End-to-End Data Analytics Platform
 Layer             : Bronze (raw ingestion — no transformations, no filtering)
 Source            : INE CSV pre-loaded into Azure SQL Database (spi_staging)
@@ -24,9 +24,11 @@ Authentication:
     No browser popup is triggered as long as `az login` session is active.
 """
 
+import io
 import logging
 import struct
 import time
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -47,9 +49,18 @@ log = logging.getLogger("ipi_bronze")
 # ──────────────────────────────────────────────────────────────────────────────
 # 1. Configuration  ← only section that needs editing between environments
 # ──────────────────────────────────────────────────────────────────────────────
+# "url" downloads CSV_URL; a failed download stops the run.
+# "local" reads CSV_PATH.
+SOURCE_MODE = "url"
+
 CSV_PATH = (
     Path(__file__).parent / ".." / ".." / "99-private" / "source-files" / "02-IPI-60272.csv"
 ).resolve()
+
+# INE direct download, same format as the manual export (csv_bdsc: semicolon
+# separated; csv_bd is tab separated).
+CSV_URL          = "https://www.ine.es/jaxiT3/files/t/es/csv_bdsc/60272.csv?nocab=1"
+DOWNLOAD_TIMEOUT = 180  # seconds — the file is ~23 MB
 
 SQL_SERVER   = "spi-sqlserver-gb.database.windows.net"
 SQL_DATABASE = "spi_staging"
@@ -68,7 +79,26 @@ BATCH_SIZE = 5_000
 # ──────────────────────────────────────────────────────────────────────────────
 # 2. Read source CSV
 # ──────────────────────────────────────────────────────────────────────────────
-def read_csv(path: Path) -> pd.DataFrame:
+def get_source() -> tuple[Path | io.BytesIO, str]:
+    """
+    Returns the CSV to read and its name for _source_file, per SOURCE_MODE.
+
+    In "url" mode a failed download (network error, HTTP error, timeout)
+    raises and stops the run before any connection to Azure SQL, so the
+    staging table is left untouched. There is no fallback to the local file.
+    """
+    if SOURCE_MODE not in ("url", "local"):
+        raise ValueError(f"SOURCE_MODE must be 'url' or 'local', got {SOURCE_MODE!r}")
+
+    if SOURCE_MODE == "url":
+        log.info("Downloading CSV: %s", CSV_URL)
+        with urllib.request.urlopen(CSV_URL, timeout=DOWNLOAD_TIMEOUT) as resp:
+            return io.BytesIO(resp.read()), CSV_URL
+
+    return CSV_PATH, CSV_PATH.name
+
+
+def read_csv(source: Path | io.BytesIO, source_name: str) -> pd.DataFrame:
     """
     Reads the INE IPI CSV into a DataFrame.
 
@@ -78,10 +108,12 @@ def read_csv(path: Path) -> pd.DataFrame:
     Encoding: utf-8-sig strips the BOM character automatically.
     The INE file uses UTF-8 with BOM — without utf-8-sig the first column
     name arrives as 'ï»¿Comunidades...' instead of 'Comunidades...'.
+    The URL's Content-Type header says ISO-8859-15, but the bytes are
+    UTF-8 with BOM too; the header is not used.
     """
-    log.info("Reading CSV: %s", path)
+    log.info("Reading CSV: %s", source_name)
     df = pd.read_csv(
-        path,
+        source,
         sep=";",
         encoding="utf-8-sig",  # UTF-8 with BOM — standard for INE exports
         dtype=str,             # all columns as text (Bronze pattern)
@@ -91,7 +123,7 @@ def read_csv(path: Path) -> pd.DataFrame:
 
     # Bronze metadata: lineage and ingestion timestamp added at load time
     df["_ingestion_timestamp"] = datetime.now(timezone.utc).isoformat()
-    df["_source_file"] = path.name
+    df["_source_file"] = source_name
     return df
 
 
@@ -299,9 +331,10 @@ def validate(conn: pyodbc.Connection, expected_rows: int) -> None:
 # 8. Main
 # ──────────────────────────────────────────────────────────────────────────────
 def main() -> None:
-    log.info("=== spi_nb_bronze_ipi — START ===")
+    log.info("=== ipi_bronze_load — START ===")
 
-    df          = read_csv(CSV_PATH)
+    source, source_name = get_source()
+    df          = read_csv(source, source_name)
     token_bytes = get_token_bytes()
     conn        = connect(token_bytes)
 
@@ -314,7 +347,11 @@ def main() -> None:
         insert_data(conn, df)
         validate(conn, expected_rows=len(df))
 
-        log.info("=== spi_nb_bronze_ipi — SUCCESS ===")
+        log.info(
+            "Source: %s  |  Rows: %s  |  Latest period: %s",
+            source_name, len(df), df["Periodo"].max(),
+        )
+        log.info("=== ipi_bronze_load — SUCCESS ===")
 
     except Exception as exc:
         log.error("Load failed: %s", exc)

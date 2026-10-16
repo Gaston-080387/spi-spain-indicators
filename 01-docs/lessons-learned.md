@@ -315,6 +315,14 @@ and issues COPY INTO.
 Verify encoding per file rather than assuming an institution-wide
 convention.
 
+**The `csv_bdsc` endpoint's encoding varies by table** (2026-10-16). IPI
+table 60272 downloaded from `csv_bdsc` is **UTF-8 with BOM**, the same bytes
+format as the manual export, although the response header says
+`Content-Type: text/plain;charset=ISO-8859-15`. Decoding it as ISO-8859-15
+garbles every accented character (`Ã\x8dndice` for `Índice`). The header is
+not a reliable signal: check the bytes (a leading `EF BB BF` is the UTF-8
+BOM).
+
 ### Energy (REE)
 
 - The API returns the current month as a running total, not a complete

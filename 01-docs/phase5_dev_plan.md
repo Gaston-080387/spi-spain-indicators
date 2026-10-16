@@ -362,13 +362,13 @@ Each sprint specification below contains: objective, task list with effort estim
 
 **Tasks — Orchestration (S7A).**
 
-| ID | Task | Est. (h) | Output |
-|---|---|---|---|
-| S7A-1 | Build `spi_pl_bronze` master pipeline (orchestrates 5 Bronze artifacts: 2 pipelines, 3 notebooks) | 2–3 | Bronze layer single-trigger |
-| S7A-2 | Build `spi_pl_silver` master pipeline (orchestrates 2 Dataflows, 3 notebooks) | 2–3 | Silver layer single-trigger |
-| S7A-3 | Build `spi_pl_gold` master pipeline (orchestrates 2 Dataflows, Gold notebook) | 1–2 | Gold layer single-trigger |
-| S7A-4 | Build `spi_pl_master` (sequential orchestration: Bronze → Silver → Gold) | 1–2 | Full pipeline single-trigger |
-| S7A-5 | End-to-end execution; logging audit | 1 | Production-ready orchestration |
+| ID | Task | Est. (h) | Output | Status |
+|---|---|---|---|---|
+| S7A-1 | Build `spi_pl_bronze` master pipeline (orchestrates 5 Bronze artifacts: 2 pipelines, 3 notebooks) | 2–3 | Bronze layer single-trigger | ✅ 2026-10-13 — invokes the 5 per-source pipelines (ADR-018) |
+| S7A-2 | Build `spi_pl_silver` master pipeline (orchestrates 2 Dataflows, 3 notebooks) | 2–3 | Silver layer single-trigger | ✅ 2026-10-14 — invokes the 5 per-source pipelines (ADR-018) |
+| S7A-3 | Build `spi_pl_gold` master pipeline (orchestrates 2 Dataflows, Gold notebook) | 1–2 | Gold layer single-trigger | ✅ 2026-10-15 — flat; Gold procedure, not notebook (ADR-018 addendum, ADR-014) |
+| S7A-4 | Build `spi_pl_master` (sequential orchestration: Bronze → Silver → Gold) | 1–2 | Full pipeline single-trigger | ✅ 2026-10-16 |
+| S7A-5 | End-to-end execution; logging audit | 1 | Production-ready orchestration | ✅ 2026-10-16 (ADR-018, validation 2026-10-16) |
 
 **Tasks — Power BI (S7B).**
 

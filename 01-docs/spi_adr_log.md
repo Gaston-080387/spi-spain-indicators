@@ -2189,3 +2189,46 @@ endpoint refresh. Their status expressions follow the same pattern as
 the procedure's, which the forced failure exercised. Whether a failed
 Dataflow activity exposes `Error.message` remains open (addendum
 2026-10-14).
+
+### Validation — 2026-10-16: `spi_pl_master`
+
+`spi_pl_master`, two runs in order.
+
+| Run | Run ID | Result |
+|---|---|---|
+| Success | `5f3707cf-e919-43ad-918f-844cffd065a2` | Succeeded in 24 min |
+| Forced failure (`START_YEAR = 'abc'` in `spi_pl_bronze_energy`) | `6128ce4a-6fae-4231-b0c1-088e5991a8f9` | `inv_bronze` Failed, master Failed |
+
+**Success run.** Bronze 9m57s, Silver 7m52s, Gold 6m22s. 15 log rows, all
+carrying the master's `run_id`, all `success`: one `run_id` across the three
+layers (Decision 3). All six checks in `spi_validation_checks.sql` healthy.
+Gold equals Silver for all five sources:
+
+| IPC (1) | IPI (2) | Energy (3) | Construction (4) | Tax (5) |
+|---|---|---|---|---|
+| 12,474 | 8,484 | 457 | 1,338 | 3,540 |
+
+IPI max period: 202608. The IPC and IPI counts differ from the 2026-10-15
+validation (12,432 / 8,379):
+
+- IPI: the staging source was refreshed before the run.
+  `ipi_bronze_load.py` in `url` mode reloaded `staging_ipi_raw` from INE's
+  direct download (`csv_bdsc`, table 60272): 312,480 rows, latest period
+  2026M08 (was 2026M06). The download is the same format as the manual
+  export (`lessons-learned.md`, INE encoding).
+- IPC: +42 rows, one new INE period (42 series × 1 month).
+  `MAX(calendar_key)` for `source_key` 1 is 202609 (202608 on 2026-10-15);
+  `spi_pl_bronze_ipc` copies INE's CSV on every run.
+
+**Forced failure.** `nb_bronze_energy` failed and its Script activity logged
+`failed`. `fail_gate_bronze` failed `spi_pl_bronze`, `inv_bronze` reported
+Failed, `inv_silver` and `inv_gold` did not run, and the master reported
+Failed. Only 5 `bronze` log rows were written for the run (energy `failed`).
+`START_YEAR` restored afterwards.
+
+**A layer gate failure reaches the master.** When a layer pipeline ends
+Failed through its Fail activity, the master's Legacy Invoke activity reports
+Failed, and the On-success links stop the chain. This differs from the
+2026-10-13 finding, where a per-source pipeline whose Script activity
+succeeded after a failed Notebook reported Succeeded to its parent. The
+master needs no gate of its own: the layer gates are the failure signal.

@@ -1,0 +1,87 @@
+{
+    "name": "spi_pl_master",
+    "objectId": "abda9a40-ee06-4a8c-a986-59fadce1236f",
+    "properties": {
+        "activities": [
+            {
+                "name": "inv_bronze",
+                "type": "ExecutePipeline",
+                "dependsOn": [],
+                "policy": {
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "a7804a03-1c1f-4b00-aae9-9979adf52ae1",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "run_id": {
+                            "value": "@pipeline().RunId",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "inv_silver",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "inv_bronze",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "035a2fa5-ea50-4441-8a4a-dad86ee77fac",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "run_id": {
+                            "value": "@pipeline().RunId",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "inv_gold",
+                "type": "ExecutePipeline",
+                "dependsOn": [
+                    {
+                        "activity": "inv_silver",
+                        "dependencyConditions": [
+                            "Succeeded"
+                        ]
+                    }
+                ],
+                "policy": {
+                    "secureInput": false
+                },
+                "typeProperties": {
+                    "pipeline": {
+                        "referenceName": "55ef226b-d74c-4869-8be0-b048f4f941b7",
+                        "type": "PipelineReference"
+                    },
+                    "waitOnCompletion": true,
+                    "parameters": {
+                        "run_id": {
+                            "value": "@pipeline().RunId",
+                            "type": "Expression"
+                        }
+                    }
+                }
+            }
+        ],
+        "lastModifiedByObjectId": "570f0e39-66e1-4394-86cd-20e802978332",
+        "lastPublishTime": "2026-10-16T16:02:48Z"
+    }
+}

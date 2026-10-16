@@ -52,9 +52,24 @@ sources in one call. A row is `success` only if both activities behind it
 succeeded: the DELETE and the dataflow, or the SQL endpoint refresh and the
 procedure (ADR-018, addendum and validation 2026-10-15).
 
+## Master pipeline
+
+| File | Runs | Gate |
+|---|---|---|
+| `spi_pl_master.json` | `inv_bronze` → `inv_silver` → `inv_gold`: Invoke pipeline (Legacy), Wait on completion | None |
+
+The activities are chained **On success** (ADR-018 Decision 2). Each one
+passes `run_id = @pipeline().RunId`, so a master run logs a single `run_id`
+across all three layers (ADR-018 Decision 3). The master writes no log rows
+and has no gate. Each layer gate fails its own pipeline, and the next
+On-success link does not run.
+
 **How the files are produced.** Exported from Fabric: in the pipeline editor,
 open **Edit JSON code** and copy its content into the file. Re-export after
 any change made in Fabric.
 
 `spi_pl_gold.json` was first generated from the Sprint 7 build sheet and
 pasted into Fabric; the file is now the Fabric export (2026-10-15).
+
+`spi_pl_master.json` was first generated and pasted into Fabric; the file is
+now the Fabric export (2026-10-16).

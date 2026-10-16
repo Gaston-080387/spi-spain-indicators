@@ -37,10 +37,10 @@ notebook completed, defense rehearsal passed.
 
 Both sources run Bronze → Silver → Gold:
 
-| Source | Bronze pipeline | Silver / Gold dataflows | Gold rows |
+| Source | Bronze pipeline | Silver / Gold dataflows | Gold rows (2026-10-16) |
 |---|---|---|---|
-| IPC | `spi_pl_bronze_ipc` | `spi_df_silver_ipc`, `spi_df_gold_ipc` | 12,390 |
-| IPI | `spi_pl_bronze_ipi` | `spi_df_silver_ipi`, `spi_df_gold_ipi` | 8,379 |
+| IPC | `spi_pl_bronze_ipc` | `spi_df_silver_ipc`, `spi_df_gold_ipc` | 12,474 |
+| IPI | `spi_pl_bronze_ipi` | `spi_df_silver_ipi`, `spi_df_gold_ipi` | 8,484 |
 
 Dimensions are seeded by `spi_df_gold_dimensions`. Fact loads use
 delete-by-source then Append (ADR-010). Validated: Gold rows equal
@@ -82,6 +82,11 @@ runtime (ADR-012). Logging by Script activities in the pipelines
 The stored procedure `dbo.spi_sp_gold_load` in `spi_warehouse`, which
 replaces the Gold notebook (ADR-014). Validated: Silver pipelines
 (ADR-009, 2026-10-06), Gold procedure (ADR-014, 2026-10-07).
+
+**Sprint 7 orchestration (S7A) — done and validated 2026-10-16.**
+`spi_pl_master` invokes `spi_pl_bronze` → `spi_pl_silver` → `spi_pl_gold`
+On success, one `run_id` per run; a layer gate failure fails the master
+(ADR-018, validation 2026-10-16). Next: S7B, the Power BI report.
 
 **Schedule from Sprint 7** (decided 2026-10-09). Trial expires
 ~2026-10-20. Reason: Sprint 6 closed 4 days early against the
