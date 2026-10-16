@@ -119,7 +119,7 @@ Supersedes the §2.1 schedule from 14 Oct onward.
 
 - **Quota rejected 2026-10-15.** North Europe is a Level 3 capacity-constrained region. Offered: Sweden Central, Poland Central or Switzerland North, or a North Europe exception needing Microsoft sign-off.
 - **Decision.** F2 `spifabricswc` in Sweden Central, created 2026-10-16 and paused. Supersedes "North Europe is mandatory" above and the §2.1 precondition.
-- **Consequence for Sprint 8.** The trial workspace cannot move across regions. Sprint 8 rebuilds it from the repository in Sweden Central after the trial ends (`99-private/rebuild_checklist.md`), instead of reassigning it. The 18 Oct "begin the capacity move" checkpoint no longer applies. Screenshots (S8-4) are still taken from the trial workspace before ~2026-10-20.
+- **Consequence for Sprint 8.** The trial workspace cannot move across regions. Sprint 8 rebuilds it from the repository in Sweden Central after the trial ends (`01-docs/rebuild_checklist.md`), instead of reassigning it. The 18 Oct "begin the capacity move" checkpoint no longer applies. Screenshots (S8-4) are still taken from the trial workspace before ~2026-10-20.
 
 ---
 
@@ -404,7 +404,7 @@ Each sprint specification below contains: objective, task list with effort estim
 |---|---|---|---|
 | S8-1 | Create F2 pay-as-you-go capacity `spifabricswc` in Sweden Central | 1 | ✅ 2026-10-16, paused (ADR-019) |
 | S8-4 | Capture curated screenshots per Phase 0 §7 (8–15 images) from the trial workspace — **before trial expiry** | 2 | `/docs/screenshots/` populated |
-| S8-2 | Rebuild the workspace from the repository in Sweden Central per `99-private/rebuild_checklist.md` — **after trial expiry**; verify one notebook runs on F2. Create items, run DDL, paste the pipeline JSONs with new IDs, re-select the dataflow destinations, full master run, validation checks | 4–6 | Items active on paid capacity |
+| S8-2 | Rebuild the workspace from the repository in Sweden Central per `01-docs/rebuild_checklist.md` — **after trial expiry**; verify one notebook runs on F2. Create items, run DDL, paste the pipeline JSONs with new IDs, re-select the dataflow destinations, full master run, validation checks | 4–6 | Items active on paid capacity |
 | S8-3 | Execute `spi_pl_master` end-to-end with full history | 1–2 | Full data resolved |
 | S8-5 | Pause capacity; final smoke test on resume | 0.5 | Sprint closed |
 | S8-6 | Record demonstration video — **post-trial** | 2–3 | Video URL captured |

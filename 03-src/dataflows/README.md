@@ -12,7 +12,11 @@ Fabric Dataflows Gen2 for IPC and IPI, and for the dimensions. One `.pq` file
 | `spi_df_gold_dimensions.pq` | Gold | `spi_dim_region`, `spi_dim_calendar`, `spi_dim_indicator` (Replace) |
 
 The Gold IPC and IPI dataflows append to the shared fact table. The rows of
-their source are deleted first (`WHERE source_key = n`, ADR-010). Until
-Sprint 7, that DELETE is run manually before each Gold refresh.
+their source are deleted first (`WHERE source_key = n`, ADR-010). The DELETE
+runs in `spi_pl_gold`, as `scr_delete_gold_ipc` / `scr_delete_gold_ipi`
+before each Gold dataflow (ADR-018, addendum 2026-10-15).
+
+Destinations, update methods and column mappings are not in the `.pq`
+exports; see `destinations.md`.
 
 `spi_df_gold_dimensions` owns the three dimensions it loads (ADR-010).

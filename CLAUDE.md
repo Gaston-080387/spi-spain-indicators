@@ -102,7 +102,7 @@ On success, one `run_id` per run; a layer gate failure fails the master
   the trial; the .pbix is the permanent demo (dev plan §2.2, 2026-10-11).
 - **Sprint 8.** Screenshots from the trial workspace before ~20 Oct.
   After the trial: rebuild the workspace from the repo in Sweden
-  Central (`99-private/rebuild_checklist.md`), full-history run, pause.
+  Central (`01-docs/rebuild_checklist.md`), full-history run, pause.
   The trial workspace (North Europe) cannot move across regions
   (ADR-019).
 - **After 20 Oct.** Sprint 9 (GitHub publication), video, last 2
@@ -142,7 +142,7 @@ contradictions; do not resolve them.
 ## Repository layout
 
 ```
-01-docs/           Frozen phase deliverables, ADR log, dev plan, lessons learned
+01-docs/           Frozen phase deliverables, ADR log, dev plan, lessons learned, rebuild checklist
 02-prerequisites/  One-time local Python bootstrap scripts (Phase 4.5 validation)
 03-src/            Fabric productive code
   warehouse/       DDL

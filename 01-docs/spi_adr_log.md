@@ -2312,7 +2312,7 @@ offered, and its creation succeeded on the first try.
   North Europe, and a workspace with Fabric items cannot be reassigned
   to a capacity in another region (ADR-006, Context). The workspace is
   rebuilt from the repository in Sweden Central after the trial ends,
-  following `99-private/rebuild_checklist.md`: every item gets a new
+  following `01-docs/rebuild_checklist.md`: every item gets a new
   ID. This is the case ADR-006 anticipated ("all Fabric items must be
   reproducible from the repository"). ADR-011's consequence that the
   move must complete before trial expiry no longer applies.

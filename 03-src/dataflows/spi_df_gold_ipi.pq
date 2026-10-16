@@ -3,7 +3,7 @@
 // Source:      spi_lakehouse.spi_silver_ipi_cleaned
 // Destination: spi_warehouse.dbo.spi_fact_indicators  (Append)
 // Precondition: DELETE FROM dbo.spi_fact_indicators WHERE source_key = 2
-//               (manual until spi_pl_gold exists — Sprint 7, ADR-010)
+//               (run by scr_delete_gold_ipi in spi_pl_gold — ADR-010, ADR-018)
 // Reference queries (no destination): spi_dim_indicator, spi_dim_region
 //               read from spi_warehouse; not reproduced here.
 

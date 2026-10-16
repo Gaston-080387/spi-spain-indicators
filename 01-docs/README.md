@@ -15,11 +15,18 @@ documents, equivalent to what would be delivered to a real client.
 | `phase3_functional.pdf` | 3 | Functional specification |
 | `phase4_technical.pdf` | 4 | Technical specification |
 
-### Living documentation (to be added)
+The phase documents are frozen. Where implementation diverges from them, the
+ADR log records the deviation and wins.
 
-- `lessons-learned.md` — Findings during implementation (updated continuously)
-- `diagrams/` — Architecture diagrams (PNG, SVG)
-- `screenshots/` — Curated Fabric workspace captures (Phase 5)
+### Living documentation
+
+| File | Content |
+|------|---------|
+| `spi_adr_log.md` | Architecture decision records: every decision and deviation from the phase documents, with dated addenda and validations. The authoritative source for current design |
+| `phase5_dev_plan.md` | Development plan: sprints, tasks, status, replans and risk register |
+| `lessons-learned.md` | Platform findings discovered during implementation (Fabric, Warehouse T-SQL, Dataflows, notebooks, sources) |
+| `rebuild_checklist.md` | Hard-coded IDs and settings to replace when the workspace is rebuilt on the paid capacity (Sprint 8, ADR-019) |
+| `spi_pl_bronze (diagram).png` | Early diagram of `spi_pl_bronze` (ADR-007 design, 2026-08). Superseded: the pipeline now invokes the per-source pipelines (ADR-018) |
 
 ## Versioning
 
