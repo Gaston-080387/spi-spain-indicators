@@ -3,8 +3,8 @@
 > **Document Type:** Living development plan. Internal working artifact.
 > **Scope:** Phase 4.5 (closure) → Phase 5 (Fabric development) → Phase 6 (publication).
 > **Target Duration:** 10 weeks (range: 9–13 weeks depending on dedication).
-> **Last Updated:** 2026-10-09
-> **Version:** 1.2 — replanned after Sprint 6 closed early (see §2.2; previous replan §2.1)
+> **Last Updated:** 2026-10-16
+> **Version:** 1.3 — paid capacity in Sweden Central; Sprint 8 rebuilds the workspace (ADR-019, §2.2). Previous replans §2.2, §2.1
 
 ---
 
@@ -114,6 +114,12 @@ Supersedes the §2.1 schedule from 14 Oct onward.
 - **Constraint.** On F SKUs below F64, creating and viewing Power BI items in a workspace needs Pro, PPU or a trial (Microsoft Learn, Fabric licenses). After the trial the workspace report cannot be opened.
 - **Decision.** No Pro licence. S7B gains a task: an Import-mode copy of the report saved as .pbix in the repo, which opens offline in free Power BI Desktop. Screenshots (S8-4) are taken before 2026-10-20 from the live Direct Lake report. The demo video moves after the trial, recorded from the .pbix; its format is decided then.
 - **F2 capacity: blocked.** A personal Microsoft account cannot create a Fabric capacity; the organizational account was given Contributor on the subscription and used instead. Creation then failed: Fabric CapacityQuota in North Europe is 0. Microsoft.Fabric provider registered; the automatic quota request (limit 4) was rejected; support ticket 2610110050000713 opened. New checkpoint 2026-10-15: if the quota is not approved, follow up and decide the fallback. North Europe is mandatory (workspace region, ADR-006).
+
+**2026-10-16: capacity region (ADR-019).**
+
+- **Quota rejected 2026-10-15.** North Europe is a Level 3 capacity-constrained region. Offered: Sweden Central, Poland Central or Switzerland North, or a North Europe exception needing Microsoft sign-off.
+- **Decision.** F2 `spifabricswc` in Sweden Central, created 2026-10-16 and paused. Supersedes "North Europe is mandatory" above and the §2.1 precondition.
+- **Consequence for Sprint 8.** The trial workspace cannot move across regions. Sprint 8 rebuilds it from the repository in Sweden Central after the trial ends (`99-private/rebuild_checklist.md`), instead of reassigning it. The 18 Oct "begin the capacity move" checkpoint no longer applies. Screenshots (S8-4) are still taken from the trial workspace before ~2026-10-20.
 
 ---
 
@@ -388,24 +394,26 @@ Each sprint specification below contains: objective, task list with effort estim
 
 ---
 
-### Sprint 8 — Capacity move and portfolio capture (reduced, v1.1)
+### Sprint 8 — Rebuild in Sweden Central and portfolio capture (v1.3)
 
-**Objective.** The single workspace runs on paid capacity in North Europe (paused by default), loaded with full history. Screenshots captured. The separate PROD workspace and Deployment Pipeline are out of scope (ADR-011).
+**Objective.** The single workspace is rebuilt from the repository on paid F2 capacity in Sweden Central (paused by default) and loaded with full history (ADR-019). Screenshots are captured from the trial workspace before it expires. The separate PROD workspace and Deployment Pipeline are out of scope (ADR-011).
 
 **Tasks.**
 
 | ID | Task | Est. (h) | Output |
 |---|---|---|---|
-| S8-1 | Create F2 pay-as-you-go capacity in North Europe; verify one notebook runs on it | 1 | Capacity validated |
-| S8-2 | Reassign `spi-spain-indicators-dev` to the paid capacity — **before trial expiry** | 0.5 | Items active on paid capacity |
+| S8-1 | Create F2 pay-as-you-go capacity `spifabricswc` in Sweden Central | 1 | ✅ 2026-10-16, paused (ADR-019) |
+| S8-4 | Capture curated screenshots per Phase 0 §7 (8–15 images) from the trial workspace — **before trial expiry** | 2 | `/docs/screenshots/` populated |
+| S8-2 | Rebuild the workspace from the repository in Sweden Central per `99-private/rebuild_checklist.md` — **after trial expiry**; verify one notebook runs on F2. Create items, run DDL, paste the pipeline JSONs with new IDs, re-select the dataflow destinations, full master run, validation checks | 4–6 | Items active on paid capacity |
 | S8-3 | Execute `spi_pl_master` end-to-end with full history | 1–2 | Full data resolved |
-| S8-4 | Capture curated screenshots per Phase 0 §7 (8–15 images) | 2 | `/docs/screenshots/` populated |
 | S8-5 | Pause capacity; final smoke test on resume | 0.5 | Sprint closed |
 | S8-6 | Record demonstration video — **post-trial** | 2–3 | Video URL captured |
 
-**Definition of Done.** Workspace operational on paid capacity (paused), full history loaded, screenshots captured. Trial expiry no longer represents a risk to portfolio availability.
+Task IDs are kept from v1.1; rows are in execution order.
 
-**Risk.** If F2 cannot run the notebooks, use F4 pay-as-you-go for the full-history run, then scale down or pause.
+**Definition of Done.** Workspace rebuilt and operational on paid capacity (paused), full history loaded, screenshots captured. Trial expiry no longer represents a risk to portfolio availability.
+
+**Risk.** If F2 cannot run the notebooks, use F4 pay-as-you-go for the full-history run, then scale down or pause. A hard-coded ID missed in the rebuild fails the activity that uses it: the rebuild checklist lists every occurrence found in `03-src/`.
 
 ---
 
@@ -466,7 +474,7 @@ This protocol is the single most important quality gate in the plan. It is the m
 |---|---|---|---|
 | Cross-tenant Azure SQL connection fails in Fabric | Medium | High (blocks IPI in Sprint 4) | Resolution path documented in Phase 4 §9. Buffer allocated in Sprint 3. If unresolved, IPI defers to mid-Sprint 4 without cascading impact. |
 | `xlrd` unavailable in Fabric Spark runtime | Medium | Medium (blocks Construction notebook) | Verified during Sprint 3 toy notebook. Fabric Environment installation per Phase 4 §3.7 is the resolution. |
-| Trial expiry before Sprint 8 closure | High (v1.1) | High | Expiry deactivates items; OneLake keeps them 7 days. Mitigation: capacity move starts by 18 Oct regardless of progress (§2.1); paid F4 as a contingency from 13 Oct. |
+| Trial expiry before Sprint 8 closure | High (v1.1) | High | Expiry deactivates items; OneLake keeps them 7 days. Mitigation (v1.3): no move before expiry; the workspace is rebuilt from the repository in Sweden Central after the trial (ADR-019, §2.2). Screenshots are taken before expiry. |
 | Sustained author productivity decrease (multi-week) | Medium | Medium | Buffer is built into estimates. Honest re-estimation and scope reduction are acceptable responses. AI-assisted implementation is part of the working dynamic since v1.1 (§1.2); delegating design decisions, or accepting code the author cannot defend, is not. |
 | Power BI report scope creep | Medium | Low | Four core pages within the trial window (v1.1); the remaining two post-trial. Polish iteration occurs post-publication. |
 | Defense rehearsals deprioritized under time pressure | High | Critical | The rehearsal is the portfolio differentiator. It is non-optional regardless of schedule pressure. |
@@ -509,3 +517,4 @@ The plan defined in this document is engineered to produce that outcome.
 | 1.1 | 2026-09-29 | Replan after Sprints 3–4 exceeded estimates (§2.1). PROD workspace dropped (ADR-011); report reduced to 4 core pages in-window; video and Sprint 9 moved post-trial; Sprint 8 rewritten; §1.2 records Claude Code as implementation agent. |
 | 1.2 | 2026-10-09 | Replan after Sprint 6 closed early; Sprint 7 10–16 Oct, Sprint 8 17–18 Oct (§2.2). |
 | 1.2 | 2026-10-11 | Power BI licence decision: no Pro; .pbix offline demo; video after trial (§2.2); F2 precondition blocked by quota 0, support ticket opened. |
+| 1.3 | 2026-10-16 | Paid capacity F2 in Sweden Central after North Europe quota rejection (ADR-019, §2.2). Sprint 8 rebuilds the workspace from the repository after the trial instead of moving it; S7A marked done. |

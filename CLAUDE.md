@@ -93,16 +93,18 @@ On success, one `run_id` per run; a layer gate failure fails the master
 `phase5_dev_plan.md` §2.1 schedule.
 
 - **Sprint 7, 10–16 Oct — next.** Preconditions check first: Azure
-  subscription, Power BI Pro licence, F2 blocked: Fabric quota 0 in
-  North Europe; support ticket 2610110050000713; checkpoint 15 Oct
-  (dev plan §2.2, 2026-10-11). Then orchestration (S7A) and the Power BI
+  subscription, Power BI Pro licence, F2: quota rejected in North
+  Europe (capacity-constrained, 2026-10-15); F2 `spifabricswc` created
+  in Sweden Central 2026-10-16 and paused (ADR-019). Then orchestration (S7A) and the Power BI
   report, 4 pages, plus an Import-mode copy saved as .pbix in the
   repo (S7B).
 - No Power BI Pro licence: the workspace report is unavailable after
   the trial; the .pbix is the permanent demo (dev plan §2.2, 2026-10-11).
-- **Sprint 8, 17–18 Oct.** Capacity move, full-history run,
-  screenshots, pause. 18 Oct is the last safe day for the move.
-  Depends on the quota being approved.
+- **Sprint 8.** Screenshots from the trial workspace before ~20 Oct.
+  After the trial: rebuild the workspace from the repo in Sweden
+  Central (`99-private/rebuild_checklist.md`), full-history run, pause.
+  The trial workspace (North Europe) cannot move across regions
+  (ADR-019).
 - **After 20 Oct.** Sprint 9 (GitHub publication), video, last 2
   report pages.
 
@@ -183,7 +185,9 @@ preferences — code that ignores them fails.
 its entire lifetime regardless of workload. Two concurrent Spark
 sessions cannot coexist. Notebook execution is strictly sequential.
 Daily consumption is nonetheless low (~0.5% observed) — the constraint
-is instantaneous concurrency, not volume.
+is instantaneous concurrency, not volume. After the Sprint 8 rebuild the
+capacity is F2 (2 CU) in Sweden Central (ADR-019); whether the notebooks
+run on it is unverified.
 
 **Fabric Warehouse T-SQL:**
 - `PRIMARY KEY` is rejected inside `CREATE TABLE`. Create the table,

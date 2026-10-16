@@ -33,7 +33,7 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 008 | Warehouse collation: case-insensitive  | Accepted | Gold layer |
 | 009 | Logging: target, write mechanisms and status model | Accepted | Infrastructure |
 | 010 | Gold load strategy for Dataflow sources: seeded dimensions, delete-by-source + append | Accepted | Gold fact load, Sprint 7 pipeline |
-| 011 | Single workspace: no separate PROD environment | Accepted | Environment strategy |
+| 011 | Single workspace: no separate PROD environment | Accepted; paid-capacity region superseded by 019 | Environment strategy |
 | 012 | Bronze notebooks on the Fabric Python runtime | Accepted | Bronze notebooks, Sprint 5 |
 | 013 | Construction Bronze stores the raw XLS grid | Accepted | Construction Bronze notebook, Sprint 6 Silver |
 | 014 | Gold load for Energy, Construction and Tax as a T-SQL stored procedure | Accepted | Gold fact load, Sprint 6 |
@@ -41,6 +41,7 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 016 | Construction Silver: layout parsing and vocabulary | Accepted | Construction Silver notebook, Gold dimensions |
 | 017 | Tax Silver: additive concepts and regional scope | Accepted | Tax Silver notebook, Gold dimensions, report |
 | 018 | Layer orchestration: layer pipelines invoke the per-source pipelines | Accepted | Layer and master pipelines, log gate, Sprint 7 |
+| 019 | Paid Fabric capacity in Sweden Central | Accepted | Capacity strategy, Sprint 8 rebuild |
 
 ---
 
@@ -301,6 +302,12 @@ identity; creating a second principal solely to demonstrate least
 privilege was judged out of scope. In a client engagement, Fabric
 would authenticate as a dedicated service principal with SELECT on
 the source table only.
+
+### Addendum — 2026-10-16: paid capacity in Sweden Central
+
+This ADR stands for the trial capacity. The paid capacity is in Sweden
+Central, not North Europe: the North Europe quota was rejected. The
+workspace is rebuilt there after the trial. See ADR-019.
 
 ---
 
@@ -1063,6 +1070,14 @@ effort with no promotion mechanism to show.
   they would be the default; this ADR is the answer when asked why.
 - The capacity move (S8-1, S8-2) must complete before trial expiry.
   See the checkpoints in `phase5_dev_plan.md` §2.1.
+
+### Addendum — 2026-10-16: rebuild, not reassignment
+
+The single-workspace decision stands. The paid capacity is in Sweden
+Central (ADR-019), and a workspace cannot move across regions, so the
+workspace is rebuilt from the repository after the trial instead of
+being reassigned. The capacity move no longer has to complete before
+trial expiry. See ADR-019.
 
 ## ADR-012 — Bronze notebooks on the Fabric Python runtime
 
@@ -2232,3 +2247,80 @@ Failed, and the On-success links stop the chain. This differs from the
 2026-10-13 finding, where a per-source pipeline whose Script activity
 succeeded after a failed Notebook reported Succeeded to its parent. The
 master needs no gate of its own: the layer gates are the failure signal.
+
+## ADR-019 — Paid Fabric capacity in Sweden Central
+
+**Date:** 2026-10-16
+**Status:** Accepted
+
+### Context
+
+ADR-006 put the trial capacity in North Europe. ADR-011 planned to
+reassign the workspace to a paid F capacity in North Europe before the
+trial expires (~2026-10-20), and `phase5_dev_plan.md` §2.2 made North
+Europe mandatory for it.
+
+Creating the F2 in North Europe failed: Fabric CapacityQuota 0, the
+automatic increase was rejected, and support ticket 2610110050000713
+was opened (`phase5_dev_plan.md` §2.2, 2026-10-11).
+
+On 2026-10-15 the support ticket rejected the quota request: North
+Europe is a **Level 3 capacity-constrained region**. The options
+offered:
+
+- a non-constrained region: Sweden Central, Poland Central or
+  Switzerland North; or
+- an exception for North Europe, which needs Microsoft sign-off.
+
+### Decision
+
+**F2 pay-as-you-go capacity `spifabricswc` in Sweden Central.**
+
+- Resource group: `rg-spi-portfolio`.
+- Created 2026-10-16 and paused straight after.
+- Overage protection off.
+- Capacity admin: the organizational (`onmicrosoft.com`) account.
+
+### Rationale
+
+- **Available now.** Sweden Central is not capacity-constrained; the
+  capacity was created the day after the rejection.
+- **The exception path depends on Microsoft sign-off,** outside the
+  project's control, with the trial ending ~2026-10-20.
+- **EU region.** Sweden Central keeps ADR-006's EU data-residency
+  reason.
+- **First option offered.** It was the first region Microsoft support
+  proposed.
+
+### Alternatives considered
+
+**North Europe exception.** Not pursued: needs Microsoft sign-off.
+
+**Poland Central.** Also an EU region and also viable; there is no
+strong reason against it. Sweden Central was chosen as the first option
+offered, and its creation succeeded on the first try.
+
+**Switzerland North.** Rejected: outside the EU (ADR-006).
+
+### Consequences
+
+- **Supersedes** the paid-capacity region in ADR-011 ("reassigned to a
+  paid F capacity in North Europe") and in `phase5_dev_plan.md` §2.1
+  (preconditions) and §2.2 ("North Europe is mandatory"). ADR-006
+  stands for the trial capacity.
+- **The workspace is rebuilt, not moved.** The trial workspace is in
+  North Europe, and a workspace with Fabric items cannot be reassigned
+  to a capacity in another region (ADR-006, Context). The workspace is
+  rebuilt from the repository in Sweden Central after the trial ends,
+  following `99-private/rebuild_checklist.md`: every item gets a new
+  ID. This is the case ADR-006 anticipated ("all Fabric items must be
+  reproducible from the repository"). ADR-011's consequence that the
+  move must complete before trial expiry no longer applies.
+- **Azure SQL stays in North Europe.** The IPI Bronze Copy activity
+  reads across regions. Negligible at this volume (~312K rows).
+- **Multi-geo continues.** The tenant home region is Spain Central;
+  the workspace content will reside in Sweden Central instead of North
+  Europe (ADR-006, Consequences).
+- **Unverified:** whether F2 runs the notebooks (`phase5_dev_plan.md`
+  §2.1 precondition); whether the source connections, which are tenant
+  objects, survive the rebuild with their IDs (rebuild checklist §8).
