@@ -1,0 +1,79 @@
+table Source
+	lineageTag: f4809fc8-173a-4ba9-bd1e-3026bbd1967a
+
+	column source_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 18061727-eb21-48ba-988c-1aed0871b28d
+		summarizeBy: none
+		sourceColumn: source_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_code
+		dataType: string
+		lineageTag: 97d6aa3b-e34a-4534-8b66-ba80c8e964e5
+		summarizeBy: none
+		sourceColumn: source_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_name
+		dataType: string
+		lineageTag: 3dc45314-b720-4f43-9500-686e9dbe3bba
+		summarizeBy: none
+		sourceColumn: source_name
+		sortByColumn: source_key
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_institution
+		dataType: string
+		lineageTag: 093ea797-8272-4767-b7a4-afb6d9925580
+		summarizeBy: none
+		sourceColumn: source_institution
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_domain
+		dataType: string
+		lineageTag: fd062613-7ecd-4d9a-8a19-6a7d0879b1e7
+		summarizeBy: none
+		sourceColumn: source_domain
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_url
+		dataType: string
+		lineageTag: 7ad8709d-a066-4f22-9b0d-8d7c88985464
+		summarizeBy: none
+		sourceColumn: source_url
+
+		annotation SummarizationSetBy = Automatic
+
+	column update_frequency
+		dataType: string
+		lineageTag: 72273b61-d66c-42bd-b72b-0601f8e7d263
+		summarizeBy: none
+		sourceColumn: update_frequency
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Source = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com", "spi_warehouse"),
+				    dbo_spi_dim_source = Source{[Schema="dbo",Item="spi_dim_source"]}[Data]
+				in
+				    dbo_spi_dim_source
+
+	changedProperty = Name
+
+	annotation PBI_ResultType = Table
+

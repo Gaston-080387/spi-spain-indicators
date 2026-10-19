@@ -1,0 +1,111 @@
+table Calendar
+	lineageTag: ef8cf73a-8352-43f9-ab75-0f483b2a7fb7
+
+	column calendar_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 3b97c758-d3c8-488e-bc19-04f1e263222c
+		summarizeBy: none
+		sourceColumn: calendar_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column year
+		dataType: int64
+		formatString: 0
+		lineageTag: 6f1cf211-d770-4c62-bfa2-6248749e7a17
+		summarizeBy: none
+		sourceColumn: year
+
+		annotation SummarizationSetBy = User
+
+	column month
+		dataType: int64
+		formatString: 0
+		lineageTag: b34cc238-4f60-4e89-bafa-5427af5a18f2
+		summarizeBy: none
+		sourceColumn: month
+
+		annotation SummarizationSetBy = User
+
+	column month_name
+		dataType: string
+		lineageTag: 6b127b4f-e751-414f-aef0-601551c5c3f7
+		summarizeBy: none
+		sourceColumn: month_name
+		sortByColumn: month
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column quarter
+		dataType: int64
+		formatString: 0
+		lineageTag: 99f4548f-34d9-4d6a-91cd-ec4e4620b852
+		summarizeBy: none
+		sourceColumn: quarter
+
+		annotation SummarizationSetBy = User
+
+	column year_month
+		dataType: string
+		lineageTag: 03010f60-9db8-467e-a361-0365242157b1
+		summarizeBy: none
+		sourceColumn: year_month
+
+		annotation SummarizationSetBy = Automatic
+
+	column is_current_year
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: 65d087a8-b0b7-4a4a-8d8c-461f3eae9894
+		summarizeBy: none
+		sourceColumn: is_current_year
+
+		annotation SummarizationSetBy = Automatic
+
+	column month_start_date
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 1aaa2491-5248-4ff1-9534-b4d822b58c98
+		summarizeBy: none
+		sourceColumn: month_start_date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column month_index
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 24e4c0e1-7f3c-4e5b-979f-255e8da6623b
+		summarizeBy: none
+		sourceColumn: month_index
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = User
+
+	partition Calendar = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com", "spi_warehouse"),
+				    dbo_spi_dim_calendar = Source{[Schema="dbo",Item="spi_dim_calendar"]}[Data],
+				    #"Added Custom" = Table.AddColumn(dbo_spi_dim_calendar, "month_start_date", each #date([year], [month], 1)),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "month_index", each [year] * 12 + [month]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Added Custom1",{{"month_start_date", type date}, {"month_index", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	changedProperty = Name
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

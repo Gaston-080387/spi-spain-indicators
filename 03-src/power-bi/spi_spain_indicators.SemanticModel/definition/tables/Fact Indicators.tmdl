@@ -1,0 +1,80 @@
+table 'Fact Indicators'
+	isHidden
+	lineageTag: 2db92155-7c7c-4c3d-81f0-d0586fde0261
+
+	column indicator_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 47708920-e5c6-4978-96bd-dd53963317dd
+		summarizeBy: none
+		sourceColumn: indicator_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2e57884c-58a5-4b16-8785-595efcf2a123
+		summarizeBy: none
+		sourceColumn: region_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column calendar_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6067c317-c3bd-439c-a282-cf193085d643
+		summarizeBy: none
+		sourceColumn: calendar_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column source_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 73ebdcd5-7605-445e-bd48-a9fbdb6048a0
+		summarizeBy: none
+		sourceColumn: source_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column indicator_value
+		dataType: double
+		isHidden
+		lineageTag: 4fce1bea-c9d6-4374-abbb-38e113a8ded3
+		summarizeBy: sum
+		sourceColumn: indicator_value
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	partition 'Fact Indicators' = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com", "spi_warehouse"),
+				    dbo_spi_fact_indicators = Source{[Schema="dbo",Item="spi_fact_indicators"]}[Data]
+				in
+				    dbo_spi_fact_indicators
+
+	changedProperty = IsHidden
+
+	changedProperty = Name
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "spi_spain_indicators"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "2e0341c5-4271-42fa-959a-f9ac62dcf998"
+  }
+}

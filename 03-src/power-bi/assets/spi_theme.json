@@ -1,0 +1,46 @@
+{
+  "name": "SPI - Spain Public Indicators",
+  "dataColors": [
+    "#0F7B6C",
+    "#E0A526",
+    "#1F2933",
+    "#B4533A",
+    "#3E5C76",
+    "#6E8B3D",
+    "#8C6A4F",
+    "#6D4C8D"
+  ],
+  "foreground": "#1F2933",
+  "foregroundNeutralSecondary": "#5B6770",
+  "foregroundNeutralTertiary": "#8A959C",
+  "background": "#FFFFFF",
+  "backgroundLight": "#F4F6F6",
+  "backgroundNeutral": "#DDE3E6",
+  "tableAccent": "#0F7B6C",
+  "good": "#2E7D5B",
+  "neutral": "#8A959C",
+  "bad": "#B4533A",
+  "maximum": "#0F7B6C",
+  "center": "#E0A526",
+  "minimum": "#DDE3E6",
+  "textClasses": {
+    "callout": { "fontSize": 28, "fontFace": "Segoe UI Semibold", "color": "#1F2933" },
+    "title":   { "fontSize": 12, "fontFace": "Segoe UI Semibold", "color": "#1F2933" },
+    "header":  { "fontSize": 12, "fontFace": "Segoe UI Semibold", "color": "#1F2933" },
+    "label":   { "fontSize": 10, "fontFace": "Segoe UI", "color": "#5B6770" }
+  },
+  "visualStyles": {
+    "*": {
+      "*": {
+        "background": [ { "show": true, "color": { "solid": { "color": "#FFFFFF" } }, "transparency": 0 } ],
+        "border": [ { "show": true, "color": { "solid": { "color": "#DDE3E6" } }, "radius": 10 } ],
+        "dropShadow": [ { "show": false } ]
+      }
+    },
+    "page": {
+      "*": {
+        "outspace": [ { "color": { "solid": { "color": "#F4F6F6" } } } ]
+      }
+    }
+  }
+}

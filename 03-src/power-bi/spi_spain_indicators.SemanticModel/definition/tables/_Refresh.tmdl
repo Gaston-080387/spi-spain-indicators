@@ -1,0 +1,32 @@
+table _Refresh
+	isHidden
+	lineageTag: 78e96036-6e62-4089-8fb4-dab834d32160
+
+	column Refreshed
+		dataType: dateTime
+		isHidden
+		formatString: General Date
+		lineageTag: cda56baa-d9fa-4bd2-9ea3-1693c0d26d21
+		summarizeBy: none
+		sourceColumn: Refreshed
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Refresh = m
+		mode: import
+		source =
+				let
+				    Source = #table(type table [Refreshed = datetime], {{DateTime.LocalNow()}})
+				in
+				    Source
+
+	changedProperty = IsHidden
+
+	changedProperty = Name
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

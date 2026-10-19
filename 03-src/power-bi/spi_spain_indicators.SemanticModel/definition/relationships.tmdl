@@ -1,0 +1,24 @@
+relationship 481c6c06-e319-4766-8b5b-dbc45f862519
+	fromColumn: 'Fact Indicators'.calendar_key
+	toColumn: Calendar.calendar_key
+
+	annotation PBI_IsFromSource = FS
+
+relationship dee43b21-37d8-42ac-a031-bf6a0dafe9d9
+	fromColumn: 'Fact Indicators'.indicator_key
+	toColumn: Indicator.indicator_key
+
+	annotation PBI_IsFromSource = FS
+
+relationship 0eef0909-33d5-41db-a0fb-3a5f5bc922a4
+	fromColumn: 'Fact Indicators'.region_key
+	toColumn: Region.region_key
+
+	annotation PBI_IsFromSource = FS
+
+relationship d2547cfe-7b0d-41fd-ad47-f668a32f79de
+	fromColumn: 'Fact Indicators'.source_key
+	toColumn: Source.source_key
+
+	annotation PBI_IsFromSource = FS
+

@@ -1,0 +1,55 @@
+table Region
+	lineageTag: 387fba83-023a-43df-8725-bf3e88267b81
+
+	column region_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 422b0223-abf4-48d9-9b66-4263820864f6
+		summarizeBy: none
+		sourceColumn: region_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_code
+		dataType: string
+		lineageTag: 1969dd46-03c4-48ce-a62c-80845eaa9764
+		summarizeBy: none
+		sourceColumn: region_code
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_name
+		dataType: string
+		lineageTag: fa67ece9-afd6-4478-81e3-abdd1d03b8e2
+		summarizeBy: none
+		sourceColumn: region_name
+		sortByColumn: region_key
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column region_type
+		dataType: string
+		lineageTag: 9b3455ed-f6f1-42ff-89cb-ab0d7b7ef569
+		summarizeBy: none
+		sourceColumn: region_type
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Region = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com", "spi_warehouse"),
+				    dbo_spi_dim_region = Source{[Schema="dbo",Item="spi_dim_region"]}[Data]
+				in
+				    dbo_spi_dim_region
+
+	changedProperty = Name
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,160 @@
+table _Measures
+	lineageTag: 3b393aba-2260-478f-a678-fa8f3ceac416
+
+	measure Value =
+			
+			VAR _regions    = DISTINCTCOUNT ( 'Fact Indicators'[region_key] )
+			VAR _sources    = DISTINCTCOUNT ( 'Fact Indicators'[source_key] )
+			VAR _indicators = DISTINCTCOUNT ( 'Fact Indicators'[indicator_key] )
+			VAR _units      = SUMMARIZE ( 'Fact Indicators', Indicator[unit_of_measure] )
+			VAR _isIndex    = LEFT ( MAXX ( _units, Indicator[unit_of_measure] ), 5 ) = "Index"
+			RETURN
+			    SWITCH (
+			        TRUE (),
+			        _regions <> 1 || _sources <> 1, BLANK (),
+			        _isIndex, IF ( _indicators = 1, AVERAGE ( 'Fact Indicators'[indicator_value] ) ),
+			        SUM ( 'Fact Indicators'[indicator_value] )
+			    )
+		formatString: 0.0
+		lineageTag: 2d69a3ed-4d87-4291-a34e-39c977597836
+
+	measure 'Value PY' = ```
+			
+			VAR _min = MIN ( 'Calendar'[month_index] )
+			VAR _max = MAX ( 'Calendar'[month_index] )
+			RETURN
+			    CALCULATE (
+			        [Value],
+			        REMOVEFILTERS ( 'Calendar' ),
+			        'Calendar'[month_index] >= _min - 12,
+			        'Calendar'[month_index] <= _max - 12
+			    ) 
+			```
+		formatString: 0.0
+		lineageTag: 01f17538-9315-4bdd-8b4e-07d37b3a05af
+
+	measure 'Value PM' =
+			
+			VAR _min = MIN ( 'Calendar'[month_index] )
+			VAR _max = MAX ( 'Calendar'[month_index] )
+			RETURN
+			    CALCULATE (
+			        [Value],
+			        REMOVEFILTERS ( 'Calendar' ),
+			        'Calendar'[month_index] >= _min - 1,
+			        'Calendar'[month_index] <= _max - 1
+			    )
+		formatString: 0.0
+		lineageTag: cf2b9ea6-7a27-4929-b298-4d6ea56b1c96
+
+	measure 'YoY %' =
+			
+			VAR _cur  = [Value]
+			VAR _prev = [Value PY]
+			RETURN IF ( NOT ISBLANK ( _cur ) && NOT ISBLANK ( _prev ), DIVIDE ( _cur - _prev, _prev ) )
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: a72a2bf3-a94a-4b7f-88bf-954e149b6554
+
+	measure 'MoM %' =
+			
+			VAR _cur  = [Value]
+			VAR _prev = [Value PM]
+			RETURN IF ( NOT ISBLANK ( _cur ) && NOT ISBLANK ( _prev ), DIVIDE ( _cur - _prev, _prev ) )
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 08b9ba6c-ce5a-4d66-9683-556373f6ce9a
+
+	measure 'Latest Period Key' =
+			
+			CALCULATE ( MAX ( 'Fact Indicators'[calendar_key] ), REMOVEFILTERS ( 'Calendar' ) )
+		formatString: 0
+		isHidden
+		lineageTag: b11db8c8-bcb0-4a47-993f-de2929cda069
+
+		changedProperty = IsHidden
+
+	measure 'Latest Period' =
+			
+			LOOKUPVALUE ( 'Calendar'[year_month], 'Calendar'[calendar_key], [Latest Period Key] )
+		lineageTag: f99a17c5-bbd4-4446-9161-dea17520154f
+
+	measure 'Latest Value' =
+			
+			VAR _k = [Latest Period Key]
+			RETURN CALCULATE ( [Value], REMOVEFILTERS ( 'Calendar' ), 'Calendar'[calendar_key] = _k )
+		formatString: 0.0
+		lineageTag: 99b13d0f-3f84-4975-ba74-1951aba15dd0
+
+	measure 'Latest YoY %' =
+			
+			VAR _k = [Latest Period Key]
+			RETURN CALCULATE ( [YoY %], REMOVEFILTERS ( 'Calendar' ), 'Calendar'[calendar_key] = _k )
+		formatString: ▴ +0.0%;▾ -0.0%;0.0%
+		lineageTag: 51166a19-5d7d-4b62-a6c5-feea58245c5c
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'Source Colour' =
+			
+			SWITCH (
+			    MAX ( 'Fact Indicators'[source_key] ),
+			    1, "#B4533A",   -- IPC: terracotta
+			    2, "#3E5C76",   -- IPI: steel blue
+			    3, "#6E8B3D",   -- Energy: olive
+			    4, "#8C6A4F",   -- Construction: clay
+			    5, "#6D4C8D",   -- Tax: plum
+			    "#5B6770"
+			)
+		isHidden
+		lineageTag: 27552693-0a4d-4cd7-b1bb-d691095b1197
+
+		changedProperty = IsHidden
+
+	measure 'YoY % (36m)' =
+			
+			VAR _k         = [Latest Period Key]
+			VAR _latestIdx = INT ( _k / 100 ) * 12 + MOD ( _k, 100 )
+			VAR _idx       = MAX ( 'Calendar'[month_index] )
+			RETURN
+			    IF ( _idx > _latestIdx - 36 && _idx <= _latestIdx, [YoY %] )
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: bdf39ee6-a603-41ee-8cad-94ea0ba14173
+
+	measure 'First Period' = ```
+			
+			VAR _k = CALCULATE ( MIN ( 'Fact Indicators'[calendar_key] ), REMOVEFILTERS ( 'Calendar' ) )
+			RETURN 
+			LOOKUPVALUE ( 'Calendar'[year_month], 'Calendar'[calendar_key], _k )
+			```
+		lineageTag: 873d684f-ff2d-4204-a5f0-99ebe515f830
+
+	measure Rows = COUNTROWS ( 'Fact Indicators' )
+		formatString: #,0
+		lineageTag: 59c93a84-4e3c-4923-9e4f-7eec8f8d04e0
+
+	measure 'Data Refreshed' = "Data refreshed: " & FORMAT ( MAX ( '_Refresh'[Refreshed] ), "d mmm yyyy" )
+		lineageTag: 24b643df-06c5-4b0b-9609-80f468e3550b
+
+	column Column1
+		dataType: string
+		isHidden
+		lineageTag: 7a214010-6324-48da-a1a2-51b2050a3a51
+		summarizeBy: none
+		sourceColumn: Column1
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}})
+				in
+				    #"Changed Type"
+
+	changedProperty = IsHidden
+
+	annotation PBI_ResultType = Table
+

@@ -1,0 +1,66 @@
+table Indicator
+	lineageTag: 7d163c61-77d8-45e6-bb63-dce8596108b7
+
+	column indicator_key
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 809d59e8-8fb5-477d-b69d-b87ec5b4430d
+		summarizeBy: none
+		sourceColumn: indicator_key
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column indicator_name
+		dataType: string
+		lineageTag: aee7c91e-4cdf-4aa7-b3de-140e91ad339f
+		summarizeBy: none
+		sourceColumn: indicator_name
+
+		annotation SummarizationSetBy = Automatic
+
+	column indicator_category
+		dataType: string
+		lineageTag: daef7f65-19d7-47a0-864e-fbdd3cb3d22f
+		summarizeBy: none
+		sourceColumn: indicator_category
+
+		annotation SummarizationSetBy = Automatic
+
+	column domain
+		dataType: string
+		lineageTag: 1a254b9c-3e47-4ceb-b8ea-a558f6a77e38
+		summarizeBy: none
+		sourceColumn: domain
+
+		annotation SummarizationSetBy = Automatic
+
+	column unit_of_measure
+		dataType: string
+		lineageTag: f24e8f5b-c205-40c2-bb4c-9943c983e1ab
+		summarizeBy: none
+		sourceColumn: unit_of_measure
+
+		annotation SummarizationSetBy = Automatic
+
+	column frequency
+		dataType: string
+		lineageTag: 97eb1071-9e22-4fe2-b8ae-d50da4b90f8a
+		summarizeBy: none
+		sourceColumn: frequency
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Indicator = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database("s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com", "spi_warehouse"),
+				    dbo_spi_dim_indicator = Source{[Schema="dbo",Item="spi_dim_indicator"]}[Data]
+				in
+				    dbo_spi_dim_indicator
+
+	changedProperty = Name
+

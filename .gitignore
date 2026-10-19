@@ -75,3 +75,7 @@ config.local.*
 *.log
 logs/
 *.parquet
+
+# Power BI Project (PBIP): local settings and the Import data cache stay out of Git
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
