@@ -19,14 +19,14 @@ pipelines, then `spi_pl_master`.
 Things that exist only in the trial workspace. Lost at expiry if not
 captured.
 
-- [ ] **Export the Gold dataflows' reference queries.** `spi_df_gold_ipc`
+- [x] **Export the Gold dataflows' reference queries.** (2026-10-19) `spi_df_gold_ipc`
       and `spi_df_gold_ipi` each hold two reference queries,
       `spi_dim_indicator` and `spi_dim_region` (read from
       `spi_warehouse`), that the `.pq` exports leave out. Both fact
       queries join on them. Export their M into the repo.
-- [ ] **Fill `03-src/dataflows/destinations.md`.** Every `[TO CHECK]`,
+- [x] **Fill `03-src/dataflows/destinations.md`.** (2026-10-19, partial: see file) Every `[TO CHECK]`,
       read off each query's Data destination settings in Fabric.
-- [ ] **Check the Azure SQL firewall.** On `spi-sqlserver-gb`,
+- [x] **Check the Azure SQL firewall.** (2026-10-19: "Allow Azure services" is on, so Fabric in any region is admitted; IP rules are for the author's machine only.) On `spi-sqlserver-gb`,
       Networking: is "Allow Azure services and resources to access this
       server" on? If Fabric is admitted by IP rules instead, the rebuilt
       workspace in Sweden Central will connect from other addresses (§8).

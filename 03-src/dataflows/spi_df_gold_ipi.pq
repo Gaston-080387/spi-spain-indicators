@@ -5,7 +5,8 @@
 // Precondition: DELETE FROM dbo.spi_fact_indicators WHERE source_key = 2
 //               (run by scr_delete_gold_ipi in spi_pl_gold — ADR-010, ADR-018)
 // Reference queries (no destination): spi_dim_indicator, spi_dim_region
-//               read from spi_warehouse; not reproduced here.
+//               read from spi_warehouse; M in spi_df_gold_ipi__spi_dim_indicator.pq
+//               and spi_df_gold_ipi__spi_dim_region.pq.
 
 let
   Source = Lakehouse.Contents(null),

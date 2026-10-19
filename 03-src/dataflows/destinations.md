@@ -5,8 +5,17 @@ column mappings and staging are set in the dataflow UI and are not exported.
 This file records them for the rebuild (`01-docs/rebuild_checklist.md` §10).
 
 What the repository or the ADRs already state is filled in, with its source.
-`[TO CHECK]` marks what has to be read off the Fabric UI (each query's
-destination settings: **Data destination** → gear icon).
+Destination, table and update method were read off the trial workspace on
+2026-10-19 (hover summary of each query's **Data destination**). Schema
+options for the Warehouse destinations and staging were **not captured**
+before the trial expired: on rebuild, use automatic mapping and disable
+staging on the reference queries, then record what Fabric shows.
+
+**Workspace field.** Some destinations point to *Current workspace*
+(`spi_df_gold_ipc`, `spi_df_gold_dimensions` region/calendar), others to the
+workspace by name (`spi_df_silver_*`, `spi_df_gold_ipi`,
+`spi_df_gold_dimensions` indicator). On rebuild, set every destination to
+*Current workspace* so it does not point at the old workspace.
 
 Fields per query:
 
@@ -26,7 +35,7 @@ Fields per query:
 
 | Query | Destination | Update method | Schema options | Staging |
 |---|---|---|---|---|
-| `[TO CHECK: query name]` | `spi_lakehouse` · `spi_silver_ipc_cleaned` · `[TO CHECK: new or existing table]` | Replace (`.pq` header; `03-src/dataflows/README.md`) | `[TO CHECK]` | `[TO CHECK]` |
+| `spi_bronze_ipc_raw` | `spi_lakehouse` · `dbo.spi_silver_ipc_cleaned` | Replace | Auto mapping, schema change allowed | not captured |
 
 **Column mapping.** Output of the M query, in order:
 
@@ -39,7 +48,7 @@ Fields per query:
 | `indicator_value` | number |
 | `domain` | text |
 
-`[TO CHECK]`: the Delta column types the destination creates (`number` →
+Open (not captured before expiry): the Delta column types the destination creates (`number` →
 double or decimal?), and whether any column is renamed or excluded in the
 mapping.
 
@@ -49,12 +58,12 @@ mapping.
 
 | Query | Destination | Update method | Schema options | Staging |
 |---|---|---|---|---|
-| `[TO CHECK: query name]` | `spi_lakehouse` · `spi_silver_ipi_cleaned` · `[TO CHECK: new or existing table]` | Replace (`.pq` header; `03-src/dataflows/README.md`) | `[TO CHECK]` | `[TO CHECK]` |
+| `spi_bronze_ipi_raw` | `spi_lakehouse` · `dbo.spi_silver_ipi_cleaned` | Replace | Auto mapping, schema change allowed | not captured |
 
 **Column mapping.** Same six columns and types as `spi_df_silver_ipc`. Rows
 with a null `indicator_value` are filtered out in M (`Filtered rows 1`).
 
-`[TO CHECK]`: as for IPC.
+Open: as for IPC.
 
 ---
 
@@ -62,17 +71,16 @@ with a null `indicator_value` are filtered out in M (`Filtered rows 1`).
 
 | Query | Destination | Update method | Schema options | Staging |
 |---|---|---|---|---|
-| `[TO CHECK: query name]` (fact) | `spi_warehouse` · `dbo.spi_fact_indicators` · existing table | **Append** (ADR-010; `.pq` header) | `[TO CHECK]` | `[TO CHECK]` |
-| `spi_dim_indicator` (reference) | None | — | — | Disabled? `[TO CHECK]` |
-| `spi_dim_region` (reference) | None | — | — | Disabled? `[TO CHECK]` |
+| `spi_silver_ipc_cleaned` (fact) | `spi_warehouse` · `dbo.spi_fact_indicators` · existing table | **Append** | not captured | not captured |
+| `spi_dim_indicator` (reference) | None | — | — | not captured |
+| `spi_dim_region` (reference) | None | — | — | not captured |
 
 Never Replace: Replace truncates the whole shared fact table (ADR-010).
 `spi_pl_gold` runs `DELETE … WHERE source_key = 1` before this dataflow
 (ADR-018, addendum 2026-10-15).
 
 Reference queries have no destination. `lessons-learned.md` (Dataflows Gen2)
-says they should have staging disabled; whether they do here is
-`[TO CHECK]`.
+says they should have staging disabled; set it that way on rebuild.
 
 **Column mapping.** Fact query output → `dbo.spi_fact_indicators`:
 
@@ -84,12 +92,12 @@ says they should have staging disabled; whether they do here is
 | `source_key` | Int64 (constant 1) | `INT` |
 | `indicator_value` | number | `DECIMAL(18,4)` |
 
-`[TO CHECK]`: that the mapping is by name with no column excluded.
+Open: confirm on rebuild that the mapping is by name with no column excluded.
 
-**Reference query M is not in the repository.** The `.pq` header says the two
-reference queries "read from spi_warehouse; not reproduced here". They have to
-be rebuilt by hand (Warehouse navigation to `dbo.spi_dim_indicator` and
-`dbo.spi_dim_region`), or their M exported. `[TO CHECK: export their M]`
+**Reference query M** is exported to
+`spi_df_gold_ipc__spi_dim_indicator.pq` and `spi_df_gold_ipc__spi_dim_region.pq`
+(2026-10-19). Both are plain Warehouse navigations; replace the workspace and
+Warehouse IDs on rebuild.
 
 ---
 
@@ -97,12 +105,13 @@ be rebuilt by hand (Warehouse navigation to `dbo.spi_dim_indicator` and
 
 | Query | Destination | Update method | Schema options | Staging |
 |---|---|---|---|---|
-| `[TO CHECK: query name]` (fact) | `spi_warehouse` · `dbo.spi_fact_indicators` · existing table | **Append** (ADR-010; `.pq` header) | `[TO CHECK]` | `[TO CHECK]` |
-| `spi_dim_indicator` (reference) | None | — | — | Disabled? `[TO CHECK]` |
-| `spi_dim_region` (reference) | None | — | — | Disabled? `[TO CHECK]` |
+| `spi_silver_ipi_cleaned` (fact) | `spi_warehouse` · `dbo.spi_fact_indicators` · existing table | **Append** | not captured | not captured |
+| `spi_dim_indicator` (reference) | None | — | — | not captured |
+| `spi_dim_region` (reference) | None | — | — | not captured |
 
 Same as `spi_df_gold_ipc`, with `source_key` = 2 and the DELETE on
-`source_key = 2`. The reference-query M is not in the repository either.
+`source_key = 2`. Reference-query M: `spi_df_gold_ipi__spi_dim_indicator.pq`
+and `spi_df_gold_ipi__spi_dim_region.pq`.
 
 ---
 
@@ -110,12 +119,11 @@ Same as `spi_df_gold_ipc`, with `source_key` = 2 and the DELETE on
 
 | Query | Destination | Update method | Schema options | Staging |
 |---|---|---|---|---|
-| `spi_dim_region` | `spi_warehouse` · `dbo.spi_dim_region` · existing table | Replace (`.pq` header; ADR-010 addendum 2026-10-06) | `[TO CHECK]` | `[TO CHECK]` |
-| `spi_dim_calendar` | `spi_warehouse` · `dbo.spi_dim_calendar` · existing table | Replace (`.pq` header) | `[TO CHECK]` | `[TO CHECK]` |
-| `spi_dim_indicator` | `spi_warehouse` · `dbo.spi_dim_indicator` · existing table | Replace (`.pq` header) | `[TO CHECK]` | `[TO CHECK]` |
+| `spi_dim_region` | `spi_warehouse` · `dbo.spi_dim_region` · existing table | Replace | not captured | not captured |
+| `spi_dim_calendar` | `spi_warehouse` · `dbo.spi_dim_calendar` · existing table | Replace | not captured | not captured |
+| `spi_dim_indicator` | `spi_warehouse` · `dbo.spi_dim_indicator` · existing table | Replace | not captured | not captured |
 
-The rebuild checklist (§10) asks to confirm these update methods in Fabric
-before the move; the `.pq` header says Replace for all three.
+Update methods confirmed in Fabric on 2026-10-19: Replace for all three.
 `spi_dim_source` is not in this dataflow: it is seeded by the `INSERT`s in
 `spi_gold_ddl.sql` (ADR-010, correction to Decision 2).
 
@@ -123,7 +131,7 @@ before the move; the `.pq` header says Replace for all three.
 The dataflow owns the table; the DDL `INSERT` is the initial seed only
 (ADR-010 addendum 2026-10-06).
 
-`[TO CHECK]`: whether Replace into an existing Warehouse table keeps the DDL
+Open, check on the first rebuild refresh: whether Replace into an existing Warehouse table keeps the DDL
 definition (`VARCHAR` lengths, `NOT NULL`, the `NOT ENFORCED` primary keys) or
 drops and recreates the table with types inferred from M. This decides whether
 the DDL or the dataflow defines these three tables after the first refresh.
@@ -162,4 +170,4 @@ the DDL or the dataflow defines these three tables after the first refresh.
 | `unit_of_measure` | text | `VARCHAR(100)` |
 | `frequency` | text | `VARCHAR(50)` |
 
-`[TO CHECK]`: that each mapping is by name with no column excluded.
+Open: confirm on rebuild that each mapping is by name with no column excluded.
