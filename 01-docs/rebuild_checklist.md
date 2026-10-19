@@ -30,7 +30,7 @@ captured.
       Networking: is "Allow Azure services and resources to access this
       server" on? If Fabric is admitted by IP rules instead, the rebuilt
       workspace in Sweden Central will connect from other addresses (§8).
-- [ ] **Save the Power BI semantic model and report as PBIP** into
+- [x] **Save the Power BI semantic model and report as PBIP** (2026-10-19: Import-mode PBIP from Power BI Desktop, ADR-020; the Direct Lake model below was not kept) into
       `03-src/power-bi/`. The Direct Lake model exists only in the trial
       workspace.
 
