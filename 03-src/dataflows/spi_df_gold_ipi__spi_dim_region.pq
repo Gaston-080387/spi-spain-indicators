@@ -9,8 +9,8 @@
 
 let
   Source = Fabric.Warehouse(null),
-  Navigation = Source{[workspaceId = "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"]}[Data],
-  #"Navigation 1" = Navigation{[warehouseId = "bffbd9ed-33ad-4f34-a44a-18669a655853"]}[Data],
+  Navigation = Source{[workspaceId = "49d06868-a854-4e7b-840b-3d66fba1d24a"]}[Data],
+  #"Navigation 1" = Navigation{[warehouseId = "798e8494-dd44-4996-8212-44adb3661863"]}[Data],
   #"Navigation 2" = #"Navigation 1"{[Schema = "dbo", Item = "spi_dim_region"]}[Data]
 in
   #"Navigation 2"

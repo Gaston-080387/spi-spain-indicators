@@ -10,8 +10,8 @@
 
 let
   Source = Lakehouse.Contents(null),
-  Navigation = Source{[workspaceId = "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"]}[Data],
-  #"Navigation 1" = Navigation{[lakehouseId = "c6048c3c-087e-4436-80fa-6013d1a04aeb"]}[Data],
+  Navigation = Source{[workspaceId = "49d06868-a854-4e7b-840b-3d66fba1d24a"]}[Data],
+  #"Navigation 1" = Navigation{[lakehouseId = "9eab38c5-a0f9-48df-9f02-198c0ad250f6"]}[Data],
   #"Navigation 2" = #"Navigation 1"{[Id = "spi_silver_ipi_cleaned", ItemKind = "Table"]}[Data],
   #"Merged queries" = Table.NestedJoin(#"Navigation 2", {"indicator_category", "domain"}, spi_dim_indicator, {"indicator_category", "domain"}, "spi_dim_indicator", JoinKind.LeftOuter),
   #"Expanded spi_dim_indicator" = Table.ExpandTableColumn(#"Merged queries", "spi_dim_indicator", {"indicator_key"}, {"indicator_key"}),

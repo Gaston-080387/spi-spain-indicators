@@ -1,6 +1,6 @@
 {
     "name": "spi_pl_master",
-    "objectId": "abda9a40-ee06-4a8c-a986-59fadce1236f",
+    "objectId": "9b0007a4-cfc1-4f03-9a54-c762a12dc352",
     "properties": {
         "activities": [
             {
@@ -12,7 +12,7 @@
                 },
                 "typeProperties": {
                     "pipeline": {
-                        "referenceName": "a7804a03-1c1f-4b00-aae9-9979adf52ae1",
+                        "referenceName": "c85550c0-8ada-4bf9-bfc0-69722dfca59d",
                         "type": "PipelineReference"
                     },
                     "waitOnCompletion": true,
@@ -40,7 +40,7 @@
                 },
                 "typeProperties": {
                     "pipeline": {
-                        "referenceName": "035a2fa5-ea50-4441-8a4a-dad86ee77fac",
+                        "referenceName": "2c2d3629-38ac-4d92-9682-2c05b92babc4",
                         "type": "PipelineReference"
                     },
                     "waitOnCompletion": true,
@@ -68,7 +68,7 @@
                 },
                 "typeProperties": {
                     "pipeline": {
-                        "referenceName": "55ef226b-d74c-4869-8be0-b048f4f941b7",
+                        "referenceName": "df904a56-c52c-4fa8-8c94-896a38d28c8f",
                         "type": "PipelineReference"
                     },
                     "waitOnCompletion": true,

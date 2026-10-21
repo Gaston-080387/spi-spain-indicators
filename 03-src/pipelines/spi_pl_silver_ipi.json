@@ -1,6 +1,6 @@
 {
     "name": "spi_pl_silver_ipi",
-    "objectId": "5ba95c71-7464-488b-bf2b-75a77e4027bd",
+    "objectId": "f70594b0-e438-4fac-b8a9-bb5982b4d0cd",
     "properties": {
         "activities": [
             {
@@ -27,9 +27,9 @@
                         "annotations": [],
                         "type": "DataWarehouse",
                         "typeProperties": {
-                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
-                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
-                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "798e8494-dd44-4996-8212-44adb3661863",
+                            "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                         }
                     }
                 },
@@ -58,8 +58,8 @@
                     "secureInput": false
                 },
                 "typeProperties": {
-                    "dataflowId": "46ea17b3-645b-4ad2-9c5e-85ca517f4522",
-                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2",
+                    "dataflowId": "a1491edf-1d7d-4e30-8786-e7ffeb24e708",
+                    "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a",
                     "notifyOption": "NoNotification",
                     "dataflowType": "DataflowFabric",
                     "executeMashupQueriesOnly": true

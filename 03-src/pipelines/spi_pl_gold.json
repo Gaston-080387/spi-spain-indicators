@@ -1,6 +1,6 @@
 {
     "name": "spi_pl_gold",
-    "objectId": "55ef226b-d74c-4869-8be0-b048f4f941b7",
+    "objectId": "df904a56-c52c-4fa8-8c94-896a38d28c8f",
     "properties": {
         "activities": [
             {
@@ -20,9 +20,9 @@
                         "annotations": [],
                         "type": "DataWarehouse",
                         "typeProperties": {
-                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
-                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
-                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "798e8494-dd44-4996-8212-44adb3661863",
+                            "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                         }
                     }
                 },
@@ -58,8 +58,8 @@
                     "secureInput": false
                 },
                 "typeProperties": {
-                    "dataflowId": "6cb21ab8-9fb9-427b-bcb0-62a7e66cdbc3",
-                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2",
+                    "dataflowId": "9be686c7-dd0e-4f07-8f1a-4e3c5643de77",
+                    "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a",
                     "notifyOption": "NoNotification",
                     "dataflowType": "DataflowFabric",
                     "executeMashupQueriesOnly": true
@@ -89,9 +89,9 @@
                         "annotations": [],
                         "type": "DataWarehouse",
                         "typeProperties": {
-                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
-                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
-                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "798e8494-dd44-4996-8212-44adb3661863",
+                            "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                         }
                     }
                 },
@@ -132,9 +132,9 @@
                         "annotations": [],
                         "type": "DataWarehouse",
                         "typeProperties": {
-                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
-                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
-                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "798e8494-dd44-4996-8212-44adb3661863",
+                            "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                         }
                     }
                 },
@@ -170,8 +170,8 @@
                     "secureInput": false
                 },
                 "typeProperties": {
-                    "dataflowId": "5ec5cbee-80a6-45d2-aa7d-c2e51124cc53",
-                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2",
+                    "dataflowId": "24d959d7-3953-4a21-bd5e-683cf081d47f",
+                    "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a",
                     "notifyOption": "NoNotification",
                     "dataflowType": "DataflowFabric",
                     "executeMashupQueriesOnly": true
@@ -201,9 +201,9 @@
                         "annotations": [],
                         "type": "DataWarehouse",
                         "typeProperties": {
-                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
-                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
-                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "798e8494-dd44-4996-8212-44adb3661863",
+                            "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                         }
                     }
                 },
@@ -239,8 +239,8 @@
                     "secureInput": false
                 },
                 "typeProperties": {
-                    "notebookId": "db02c520-4b6f-4c6c-a654-ab60e499fa5b",
-                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                    "notebookId": "e2fe7a3a-cb77-47da-80f5-9b602db8b743",
+                    "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                 }
             },
             {
@@ -267,9 +267,9 @@
                         "annotations": [],
                         "type": "DataWarehouse",
                         "typeProperties": {
-                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
-                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
-                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "798e8494-dd44-4996-8212-44adb3661863",
+                            "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                         }
                     }
                 },
@@ -310,9 +310,9 @@
                         "annotations": [],
                         "type": "DataWarehouse",
                         "typeProperties": {
-                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
-                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
-                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "798e8494-dd44-4996-8212-44adb3661863",
+                            "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                         }
                     }
                 },
@@ -365,9 +365,9 @@
                                 "annotations": [],
                                 "type": "DataWarehouse",
                                 "typeProperties": {
-                                    "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
-                                    "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
-                                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                                    "endpoint": "s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com",
+                                    "artifactId": "798e8494-dd44-4996-8212-44adb3661863",
+                                    "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                                 },
                                 "externalReferences": {
                                     "connection": "e22a81cb-07ae-4539-8765-fc89bcb0b94d"

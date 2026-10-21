@@ -7,8 +7,8 @@
 
 let
   Source = Lakehouse.Contents(null),
-  Navigation = Source{[workspaceId = "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"]}[Data],
-  #"Navigation 1" = Navigation{[lakehouseId = "c6048c3c-087e-4436-80fa-6013d1a04aeb"]}[Data],
+  Navigation = Source{[workspaceId = "49d06868-a854-4e7b-840b-3d66fba1d24a"]}[Data],
+  #"Navigation 1" = Navigation{[lakehouseId = "9eab38c5-a0f9-48df-9f02-198c0ad250f6"]}[Data],
   #"Navigation 2" = #"Navigation 1"{[Id = "spi_bronze_ipc_raw", ItemKind = "Table"]}[Data],
   #"Filtered rows" = Table.SelectRows(#"Navigation 2", each ([comunidades_y_ciudades_autonomas] = "09 Cataluña" or [comunidades_y_ciudades_autonomas] = "13 Madrid, Comunidad de" or [comunidades_y_ciudades_autonomas] = "Nacional") and ([tipo_de_dato] = "Índice") and ([total] <> null)),
   #"Removed columns" = Table.RemoveColumns(#"Filtered rows", {"tipo_de_dato", "_ingestion_timestamp", "_source_file"}),

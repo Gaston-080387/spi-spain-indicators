@@ -1,6 +1,6 @@
 {
     "name": "spi_pl_silver_tax",
-    "objectId": "91e631cf-fbeb-482f-a210-1faebc26622e",
+    "objectId": "f2e75838-69aa-4496-b792-61a9b19cb81f",
     "properties": {
         "activities": [
             {
@@ -15,8 +15,8 @@
                     "secureInput": false
                 },
                 "typeProperties": {
-                    "notebookId": "58d57fc9-0237-4143-9e63-5e65256e10ec",
-                    "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                    "notebookId": "a040bdb2-a1df-4541-8f6f-26fae8fc0f7f",
+                    "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                 }
             },
             {
@@ -43,9 +43,9 @@
                         "annotations": [],
                         "type": "DataWarehouse",
                         "typeProperties": {
-                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com",
-                            "artifactId": "bffbd9ed-33ad-4f34-a44a-18669a655853",
-                            "workspaceId": "bbffcd8e-0f61-436d-bee8-eac2d26d38b2"
+                            "endpoint": "s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com",
+                            "artifactId": "798e8494-dd44-4996-8212-44adb3661863",
+                            "workspaceId": "49d06868-a854-4e7b-840b-3d66fba1d24a"
                         },
                         "externalReferences": {
                             "connection": "e22a81cb-07ae-4539-8765-fc89bcb0b94d"
