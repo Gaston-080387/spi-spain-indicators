@@ -67,14 +67,12 @@ table 'Fact Indicators'
 		mode: import
 		source =
 				let
-				    Source = Sql.Database("s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com", "spi_warehouse"),
+				    Source = Sql.Database("s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com", "spi_warehouse"),
 				    dbo_spi_fact_indicators = Source{[Schema="dbo",Item="spi_fact_indicators"]}[Data]
 				in
 				    dbo_spi_fact_indicators
 
 	changedProperty = IsHidden
-
-	changedProperty = Name
 
 	annotation PBI_ResultType = Table
 

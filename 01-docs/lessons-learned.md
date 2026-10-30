@@ -376,3 +376,44 @@ BOM).
 - No revisions found between two releases: a copy ending 2026-03 and
   one ending 2026-05 are identical on all 231 shared periods. Unlike
   MITMA (Construction).
+
+## Rebuilding a workspace (2026-10-21)
+
+- **Tenant connections survive** the loss of a workspace, with their IDs.
+  The Warehouse, HTTP and Azure SQL connections were reused unchanged by
+  the rebuilt pipelines.
+- **Replace IDs before import.** Notebooks whose default-lakehouse metadata
+  already holds the new workspace and Lakehouse IDs import attached, with
+  no manual re-attach.
+- **Build order:** the Silver dataflows read the Bronze tables at design
+  time, so create and run the Bronze pipelines before authoring the Silver
+  dataflows.
+- **Dataflow destinations** may point to the workspace by name or to
+  *Current workspace*. Use *Current workspace* so a rebuild does not point
+  at the old workspace.
+- The **Lakehouse schemas** option is off by default in the creation dialog.
+- A stored procedure that reads Lakehouse tables through three-part names
+  can be created before those tables exist.
+
+## Power BI Desktop
+
+- **Page navigator:** Fill transparency is shared across button states;
+  only the colour is per state. For a "transparent" default state, use the
+  background colour of the panel behind it.
+- **Format strings belong to the measure.** To format the same value
+  differently in one visual (e.g. no arrows), wrap it in a second measure
+  (`[Latest YoY % (plain)] = [Latest YoY %]`).
+- **Legends sort only by their own field**, not by value. A value order
+  needs a sort-by column in the dimension.
+- **Axis ranges are entered in the stored unit:** a percentage axis from
+  −30% to +30% is −0.3 to 0.3.
+- **A measure that returns blank for multiple regions** blanks a whole
+  visual when the region slicer's interaction is set to None, until the
+  region is on the legend.
+- **Date format** `mmmm yyyy` on a month-start date column fixes tooltips
+  that otherwise show a US date with a meaningless day.
+- **PBIP:** `.pbi/cache.abf` (the imported data) and `localSettings.json`
+  stay out of Git. A clone has the model but no data until refreshed.
+- **Moving a PBIP through Google Drive:** uploading a folder over an
+  existing folder of the same name did not replace its files; the
+  semantic model stayed stale. Move PBIP folders as a zip.

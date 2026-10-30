@@ -345,6 +345,16 @@ cultureInfo en-US
 			            },
 			            "Weight": 0.6
 			          }
+			        },
+			        {
+			          "Month": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
 			        }
 			      ]
 			    },
@@ -677,6 +687,16 @@ cultureInfo en-US
 			              "Agent": "Thesaurus"
 			            },
 			            "Weight": 0.6
+			          }
+			        },
+			        {
+			          "Period": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
 			          }
 			        }
 			      ],
@@ -1256,6 +1276,26 @@ cultureInfo en-US
 			              "Agent": "Thesaurus"
 			            },
 			            "Weight": 0.714
+			          }
+			        },
+			        {
+			          "Group": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Indicator": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
 			          }
 			        }
 			      ]
@@ -3894,6 +3934,46 @@ cultureInfo en-US
 			            },
 			            "Weight": 0.466
 			          }
+			        },
+			        {
+			          "Demand (MWh)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Demand": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Tenders (k€)": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "Tenders": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
 			        }
 			      ]
 			    },
@@ -4259,12 +4339,6 @@ cultureInfo en-US
 			          }
 			        },
 			        {
-			          "period": {
-			            "State": "Generated",
-			            "Weight": 0.97
-			          }
-			        },
-			        {
 			          "latest era": {
 			            "Type": "Noun",
 			            "State": "Suggested",
@@ -4282,26 +4356,6 @@ cultureInfo en-US
 			              "Agent": "Thesaurus"
 			            },
 			            "Weight": 0.475
-			          }
-			        },
-			        {
-			          "era": {
-			            "Type": "Noun",
-			            "State": "Suggested",
-			            "Source": {
-			              "Agent": "Thesaurus"
-			            },
-			            "Weight": 0.466
-			          }
-			        },
-			        {
-			          "epoch": {
-			            "Type": "Noun",
-			            "State": "Suggested",
-			            "Source": {
-			              "Agent": "Thesaurus"
-			            },
-			            "Weight": 0.466
 			          }
 			        },
 			        {
@@ -4335,33 +4389,43 @@ cultureInfo en-US
 			          }
 			        },
 			        {
-			          "age": {
+			          "latest episode": {
 			            "Type": "Noun",
 			            "State": "Suggested",
 			            "Source": {
 			              "Agent": "Thesaurus"
 			            },
-			            "Weight": 0.452
+			            "Weight": 0.451
 			          }
 			        },
 			        {
-			          "stage": {
+			          "latest interlude": {
 			            "Type": "Noun",
 			            "State": "Suggested",
 			            "Source": {
 			              "Agent": "Thesaurus"
 			            },
-			            "Weight": 0.452
+			            "Weight": 0.451
 			          }
 			        },
 			        {
-			          "phase": {
+			          "latest interval": {
 			            "Type": "Noun",
 			            "State": "Suggested",
 			            "Source": {
 			              "Agent": "Thesaurus"
 			            },
-			            "Weight": 0.452
+			            "Weight": 0.451
+			          }
+			        },
+			        {
+			          "latest extent": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.451
 			          }
 			        }
 			      ]
@@ -4600,12 +4664,6 @@ cultureInfo en-US
 			          }
 			        },
 			        {
-			          "period": {
-			            "State": "Generated",
-			            "Weight": 0.97
-			          }
-			        },
-			        {
 			          "first era": {
 			            "Type": "Noun",
 			            "State": "Suggested",
@@ -4623,26 +4681,6 @@ cultureInfo en-US
 			              "Agent": "Thesaurus"
 			            },
 			            "Weight": 0.475
-			          }
-			        },
-			        {
-			          "era": {
-			            "Type": "Noun",
-			            "State": "Suggested",
-			            "Source": {
-			              "Agent": "Thesaurus"
-			            },
-			            "Weight": 0.466
-			          }
-			        },
-			        {
-			          "epoch": {
-			            "Type": "Noun",
-			            "State": "Suggested",
-			            "Source": {
-			              "Agent": "Thesaurus"
-			            },
-			            "Weight": 0.466
 			          }
 			        },
 			        {
@@ -4676,33 +4714,43 @@ cultureInfo en-US
 			          }
 			        },
 			        {
-			          "age": {
+			          "first episode": {
 			            "Type": "Noun",
 			            "State": "Suggested",
 			            "Source": {
 			              "Agent": "Thesaurus"
 			            },
-			            "Weight": 0.452
+			            "Weight": 0.451
 			          }
 			        },
 			        {
-			          "stage": {
+			          "first interlude": {
 			            "Type": "Noun",
 			            "State": "Suggested",
 			            "Source": {
 			              "Agent": "Thesaurus"
 			            },
-			            "Weight": 0.452
+			            "Weight": 0.451
 			          }
 			        },
 			        {
-			          "phase": {
+			          "first interval": {
 			            "Type": "Noun",
 			            "State": "Suggested",
 			            "Source": {
 			              "Agent": "Thesaurus"
 			            },
-			            "Weight": 0.452
+			            "Weight": 0.451
+			          }
+			        },
+			        {
+			          "first extent": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.451
 			          }
 			        },
 			        {
@@ -4832,9 +4880,432 @@ cultureInfo en-US
 			          }
 			        }
 			      ]
+			    },
+			    "entity__measure.data_refreshed": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Measures",
+			          "ConceptualProperty": "Data Refreshed"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "data refreshed": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "information refreshed": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.75
+			          }
+			        },
+			        {
+			          "fact refreshed": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.75
+			          }
+			        },
+			        {
+			          "info refreshed": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.75
+			          }
+			        },
+			        {
+			          "statistic refreshed": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.75
+			          }
+			        },
+			        {
+			          "document refreshed": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.727
+			          }
+			        },
+			        {
+			          "figure refreshed": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.727
+			          }
+			        },
+			        {
+			          "record refreshed": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.727
+			          }
+			        }
+			      ]
+			    },
+			    "entity__measure.latest_MoM_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Measures",
+			          "ConceptualProperty": "Latest MoM %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "latest MoM %": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "latest mom percentage": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.762
+			          }
+			        },
+			        {
+			          "latest mom pct": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.739
+			          }
+			        }
+			      ]
+			    },
+			    "entity__measure.YoY__12m": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Measures",
+			          "ConceptualProperty": "YoY % (12m)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YoY % (12m)": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "YoY %": {
+			            "State": "Generated",
+			            "Weight": 0.75
+			          }
+			        },
+			        {
+			          "yoy percentage (12m)": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.624
+			          }
+			        },
+			        {
+			          "yoy pct (12m)": {
+			            "Type": "Noun",
+			            "State": "Suggested",
+			            "Source": {
+			              "Agent": "Thesaurus"
+			            },
+			            "Weight": 0.605
+			          }
+			        }
+			      ]
+			    },
+			    "entity__refresh": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Refresh"
+			        }
+			      },
+			      "State": "Generated",
+			      "Visibility": {
+			        "Value": "Hidden"
+			      },
+			      "Terms": [
+			        {
+			          "_refresh": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "entity__refresh.refreshed": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Refresh",
+			          "ConceptualProperty": "Refreshed"
+			        }
+			      },
+			      "State": "Generated",
+			      "Visibility": {
+			        "Value": "Hidden"
+			      },
+			      "Terms": [
+			        {
+			          "refreshed": {
+			            "State": "Generated"
+			          }
+			        }
+			      ],
+			      "SemanticType": "Time"
+			    },
+			    "entity__measure.latest_YoY__plain": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "_Measures",
+			          "ConceptualProperty": "Latest YoY % (plain)"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "latest YoY % (plain)": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "latest YoY %": {
+			            "State": "Generated",
+			            "Weight": 0.75
+			          }
+			        },
+			        {
+			          "Annual rate": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
 			    }
 			  },
 			  "Relationships": {
+			    "indicator_has_entity__measure_YoY__12m": {
+			      "Binding": {
+			        "ConceptualEntity": "Indicator"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "indicator": {
+			          "Target": {
+			            "Entity": "indicator"
+			          }
+			        },
+			        "entity__measure.YoY__12m": {
+			          "Target": {
+			            "Entity": "entity__measure.YoY__12m"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "indicator"
+			            },
+			            "Object": {
+			              "Role": "entity__measure.YoY__12m"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "indicators_have_YoY__12m"
+			        }
+			      ]
+			    },
+			    "fact_indicator_has_entity__measure_YoY__12m": {
+			      "Binding": {
+			        "ConceptualEntity": "Fact Indicators"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_indicator": {
+			          "Target": {
+			            "Entity": "fact_indicator"
+			          }
+			        },
+			        "entity__measure.YoY__12m": {
+			          "Target": {
+			            "Entity": "entity__measure.YoY__12m"
+			          }
+			        }
+			      }
+			    },
+			    "calendar_has_entity__measure_YoY__12m": {
+			      "Binding": {
+			        "ConceptualEntity": "Calendar"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "calendar": {
+			          "Target": {
+			            "Entity": "calendar"
+			          }
+			        },
+			        "entity__measure.YoY__12m": {
+			          "Target": {
+			            "Entity": "entity__measure.YoY__12m"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "calendar"
+			            },
+			            "Object": {
+			              "Role": "entity__measure.YoY__12m"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "calendars_have_YoY__12m"
+			        }
+			      ]
+			    },
+			    "indicator_has_entity__measure_latest_MoM_": {
+			      "Binding": {
+			        "ConceptualEntity": "Indicator"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "indicator": {
+			          "Target": {
+			            "Entity": "indicator"
+			          }
+			        },
+			        "entity__measure.latest_MoM_": {
+			          "Target": {
+			            "Entity": "entity__measure.latest_MoM_"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "indicator"
+			            },
+			            "Object": {
+			              "Role": "entity__measure.latest_MoM_"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "indicators_have_latest_MoM_"
+			        }
+			      ]
+			    },
+			    "fact_indicator_has_entity__measure_latest_MoM_": {
+			      "Binding": {
+			        "ConceptualEntity": "Fact Indicators"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_indicator": {
+			          "Target": {
+			            "Entity": "fact_indicator"
+			          }
+			        },
+			        "entity__measure.latest_MoM_": {
+			          "Target": {
+			            "Entity": "entity__measure.latest_MoM_"
+			          }
+			        }
+			      }
+			    },
+			    "entity__refresh_has_entity__measure_data_refreshed": {
+			      "Binding": {
+			        "ConceptualEntity": "_Refresh"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "entity__refresh": {
+			          "Target": {
+			            "Entity": "entity__refresh"
+			          }
+			        },
+			        "entity__measure.data_refreshed": {
+			          "Target": {
+			            "Entity": "entity__measure.data_refreshed"
+			          }
+			        }
+			      }
+			    },
+			    "fact_indicator_has_entity__measure_rows": {
+			      "Binding": {
+			        "ConceptualEntity": "Fact Indicators"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_indicator": {
+			          "Target": {
+			            "Entity": "fact_indicator"
+			          }
+			        },
+			        "entity__measure.rows": {
+			          "Target": {
+			            "Entity": "entity__measure.rows"
+			          }
+			        }
+			      }
+			    },
+			    "fact_indicator_has_entity__measure_first_period": {
+			      "Binding": {
+			        "ConceptualEntity": "Fact Indicators"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "fact_indicator": {
+			          "Target": {
+			            "Entity": "fact_indicator"
+			          }
+			        },
+			        "entity__measure.first_period": {
+			          "Target": {
+			            "Entity": "entity__measure.first_period"
+			          }
+			        }
+			      }
+			    },
 			    "calendar_has_entity__measure_first_period": {
 			      "Binding": {
 			        "ConceptualEntity": "Calendar"
@@ -6218,7 +6689,7 @@ cultureInfo en-US
 			        }
 			      ]
 			    },
-			    "fact_indicator_has_entity__measure_first_period": {
+			    "fact_indicator_has_entity__measure_latest_YoY__plain": {
 			      "Binding": {
 			        "ConceptualEntity": "Fact Indicators"
 			      },
@@ -6229,30 +6700,45 @@ cultureInfo en-US
 			            "Entity": "fact_indicator"
 			          }
 			        },
-			        "entity__measure.first_period": {
+			        "entity__measure.latest_YoY__plain": {
 			          "Target": {
-			            "Entity": "entity__measure.first_period"
+			            "Entity": "entity__measure.latest_YoY__plain"
 			          }
 			        }
 			      }
 			    },
-			    "fact_indicator_has_entity__measure_rows": {
+			    "indicator_has_entity__measure_latest_YoY__plain": {
 			      "Binding": {
-			        "ConceptualEntity": "Fact Indicators"
+			        "ConceptualEntity": "Indicator"
 			      },
 			      "State": "Generated",
 			      "Roles": {
-			        "fact_indicator": {
+			        "indicator": {
 			          "Target": {
-			            "Entity": "fact_indicator"
+			            "Entity": "indicator"
 			          }
 			        },
-			        "entity__measure.rows": {
+			        "entity__measure.latest_YoY__plain": {
 			          "Target": {
-			            "Entity": "entity__measure.rows"
+			            "Entity": "entity__measure.latest_YoY__plain"
 			          }
 			        }
-			      }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "indicator"
+			            },
+			            "Object": {
+			              "Role": "entity__measure.latest_YoY__plain"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "indicators_have_latest_YoY__plain"
+			        }
+			      ]
 			    },
 			    "fact_indicator_has_calendar": {
 			      "Binding": {

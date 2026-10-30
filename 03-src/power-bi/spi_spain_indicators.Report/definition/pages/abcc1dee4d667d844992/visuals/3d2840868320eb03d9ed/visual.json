@@ -4,10 +4,10 @@
   "position": {
     "x": 232,
     "y": 1040,
-    "z": 15001,
+    "z": 16000,
     "height": 36.359102244389028,
     "width": 1676.5586034912719,
-    "tabOrder": 15001
+    "tabOrder": 16000
   },
   "visual": {
     "visualType": "textbox",
@@ -22,13 +22,15 @@
                     "value": " Notes",
                     "textStyle": {
                       "fontWeight": "bold",
-                      "fontSize": "12pt"
+                      "fontSize": "12pt",
+                      "color": "#8a959c"
                     }
                   },
                   {
                     "value": " · Energy “Nacional” = peninsular system (REE). · Madrid energy series breaks in Feb 2026 at source (REE); values shown as received. · MITMA revises past months between releases.",
                     "textStyle": {
-                      "fontSize": "12pt"
+                      "fontSize": "12pt",
+                      "color": "#8a959c"
                     }
                   }
                 ]

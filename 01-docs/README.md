@@ -26,6 +26,8 @@ ADR log records the deviation and wins.
 | `phase5_dev_plan.md` | Development plan: sprints, tasks, status, replans and risk register |
 | `lessons-learned.md` | Platform findings discovered during implementation (Fabric, Warehouse T-SQL, Dataflows, notebooks, sources) |
 | `rebuild_checklist.md` | Hard-coded IDs and settings to replace when the workspace is rebuilt on the paid capacity (Sprint 8, ADR-019) |
+| `rebuild_id_map.md` | Old → new ID for every item in the 2026-10-21 rebuild, and the rebuild result |
+| `evidence/` | Screenshots: pipelines, monitor runs, lineage, pipeline log, the six report pages |
 | `spi_pl_bronze (diagram).png` | Early diagram of `spi_pl_bronze` (ADR-007 design, 2026-08). Superseded: the pipeline now invokes the per-source pipelines (ADR-018) |
 
 ## Versioning

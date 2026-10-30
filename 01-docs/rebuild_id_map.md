@@ -51,3 +51,12 @@ The old workspace was renamed `spi-spain-indicators-dev-trial` to free the name.
 | `spi_nb_gold_refresh_sql_endpoint` | `db02c520-4b6f-4c6c-a654-ab60e499fa5b` | `e2fe7a3a-cb77-47da-80f5-9b602db8b743` |
 | `spi_pl_gold` | `55ef226b-d74c-4869-8be0-b048f4f941b7` | `df904a56-c52c-4fa8-8c94-896a38d28c8f` |
 | `spi_pl_master` | `abda9a40-ee06-4a8c-a986-59fadce1236f` | `9b0007a4-cfc1-4f03-9a54-c762a12dc352` |
+
+## Result (2026-10-21)
+
+- Rebuilt from the repository only, on F2 `spifabricswc` (Sweden Central), in about 2.5 hours (18:54–21:32).
+- Existing tenant connections reused unchanged (Warehouse, INE HTTP, Azure SQL `spi_staging`).
+- Azure SQL (North Europe) reached from Sweden Central with no firewall change.
+- `spi_pl_master` run `6978b26e-a45e-4605-8e5a-b406ac04de72` succeeded on the first attempt (Bronze 10m42s, Silver 6m58s, Gold 5m8s).
+- `spi_validation_checks.sql`: fact = Silver for all sources (IPC 12,474 · IPI 8,484 · Energy 457 · Construction 1,338 · Tax 3,540); calendar 197501–202612, 624 rows; no duplicates or orphan keys.
+- Build order changed from the checklist: Bronze pipelines were created and run before the Silver dataflows, because the Silver dataflows read the Bronze tables.

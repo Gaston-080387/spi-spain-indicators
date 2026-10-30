@@ -44,12 +44,10 @@ table Region
 		mode: import
 		source =
 				let
-				    Source = Sql.Database("s75vfahvn26u3ixeltcyscwbvy-r3g77o3bb5wuhpxi5lbne3jywi.datawarehouse.fabric.microsoft.com", "spi_warehouse"),
+				    Source = Sql.Database("s75vfahvn26u3ixeltcyscwbvy-nbunaskuvb5u5balhvtpxiosji.datawarehouse.fabric.microsoft.com", "spi_warehouse"),
 				    dbo_spi_dim_region = Source{[Schema="dbo",Item="spi_dim_region"]}[Data]
 				in
 				    dbo_spi_dim_region
-
-	changedProperty = Name
 
 	annotation PBI_ResultType = Table
 

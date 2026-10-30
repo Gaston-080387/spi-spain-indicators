@@ -1,6 +1,9 @@
 # Rebuild checklist — hard-coded IDs
 
-Started 2026-10-15. To become the rebuild runbook after 20 Oct.
+Started 2026-10-15. Used for the rebuild on 2026-10-21; the old → new IDs and
+the result are in `rebuild_id_map.md`. The boxes below were not ticked during
+the rebuild. One change to the order below: create and run the Bronze
+pipelines before the Silver dataflows, which read the Bronze tables.
 
 Every ID below belongs to the current workspace. A rebuild in a new
 workspace or capacity gives each item a new ID, so each occurrence must

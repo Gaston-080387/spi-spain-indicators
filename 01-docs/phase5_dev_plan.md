@@ -4,7 +4,7 @@
 > **Scope:** Phase 4.5 (closure) → Phase 5 (Fabric development) → Phase 6 (publication).
 > **Target Duration:** 10 weeks (range: 9–13 weeks depending on dedication).
 > **Last Updated:** 2026-10-16
-> **Version:** 1.3 — paid capacity in Sweden Central; Sprint 8 rebuilds the workspace (ADR-019, §2.2). Previous replans §2.2, §2.1
+> **Version:** 1.4 — Sprints 7–8 closed; Sprint 9 publication (2026-10-30). Previous replans §2.2, §2.1
 
 ---
 
@@ -113,7 +113,7 @@ Supersedes the §2.1 schedule from 14 Oct onward.
 - **Precondition check.** Azure subscription OK (pay-as-you-go, budget $25/month with alerts). Power BI licence: Free, covered by the trial until ~2026-10-20.
 - **Constraint.** On F SKUs below F64, creating and viewing Power BI items in a workspace needs Pro, PPU or a trial (Microsoft Learn, Fabric licenses). After the trial the workspace report cannot be opened.
 - **Decision.** No Pro licence. S7B gains a task: an Import-mode copy of the report saved as .pbix in the repo, which opens offline in free Power BI Desktop. Screenshots (S8-4) are taken before 2026-10-20 from the live Direct Lake report. The demo video moves after the trial, recorded from the .pbix; its format is decided then.
-- **F2 capacity: blocked.** A personal Microsoft account cannot create a Fabric capacity; the organizational account was given Contributor on the subscription and used instead. Creation then failed: Fabric CapacityQuota in North Europe is 0. Microsoft.Fabric provider registered; the automatic quota request (limit 4) was rejected; support ticket 2610110050000713 opened. New checkpoint 2026-10-15: if the quota is not approved, follow up and decide the fallback. North Europe is mandatory (workspace region, ADR-006).
+- **F2 capacity: blocked.** A personal Microsoft account cannot create a Fabric capacity; the organizational account was given Contributor on the subscription and used instead. Creation then failed: Fabric CapacityQuota in North Europe is 0. Microsoft.Fabric provider registered; the automatic quota request (limit 4) was rejected; support ticket opened. New checkpoint 2026-10-15: if the quota is not approved, follow up and decide the fallback. North Europe is mandatory (workspace region, ADR-006).
 
 **2026-10-16: capacity region (ADR-019).**
 
@@ -378,15 +378,15 @@ Each sprint specification below contains: objective, task list with effort estim
 
 **Tasks — Power BI (S7B).**
 
-| ID | Task | Est. (h) | Output |
-|---|---|---|---|
-| S7B-1 | Create Direct Lake semantic model on `spi_warehouse` | 1 | Model item |
-| S7B-2 | Configure relationships; mark date table per Phase 4 §11 | 1–2 | Model wired |
-| S7B-3 | Implement DAX measures per Phase 4 catalog | 3–5 | Measures operational |
-| S7B-4 | Build four core report pages per Phase 3 specification (remaining two post-trial, §2.1) | 3–4 | Report complete |
-| S7B-5 | Save as PBIP for repository inclusion | 0.5 | PBIP exported |
-| S7B-6 | Defense rehearsal: full report walkthrough as stakeholder presentation | 1 | Sprint closed |
-| S7B-7 | Import-mode copy of the report saved as .pbix in the repo (offline demo; §2.2, 2026-10-11) | 1 | .pbix in repo |
+| ID | Task | Est. (h) | Output | Status |
+|---|---|---|---|---|
+| S7B-1 | Create Direct Lake semantic model on `spi_warehouse` | 1 | Model item | ✅ Superseded: Import model in Desktop (ADR-020) |
+| S7B-2 | Configure relationships; mark date table per Phase 4 §11 | 1–2 | Model wired | ✅ Monthly calendar not marked; `month_index` instead (ADR-020) |
+| S7B-3 | Implement DAX measures per Phase 4 catalog | 3–5 | Measures operational | ✅ 19 measures |
+| S7B-4 | Build four core report pages per Phase 3 specification (remaining two post-trial, §2.1) | 3–4 | Report complete | ✅ 6 pages, 2026-10-29 |
+| S7B-5 | Save as PBIP for repository inclusion | 0.5 | PBIP exported | ✅ `03-src/power-bi/` |
+| S7B-6 | Defense rehearsal: full report walkthrough as stakeholder presentation | 1 | Sprint closed | Open |
+| S7B-7 | Import-mode copy of the report saved as .pbix in the repo (offline demo; §2.2, 2026-10-11) | 1 | .pbix in repo | Changed: .pbix as a GitHub Release asset, not in the repo (ADR-020) |
 
 **Definition of Done.** `spi_pl_master` executes end-to-end without manual intervention. All five sources resolve into Gold. Power BI report renders all six pages. Author can present the report as a stakeholder-facing demonstration.
 
@@ -403,11 +403,11 @@ Each sprint specification below contains: objective, task list with effort estim
 | ID | Task | Est. (h) | Output |
 |---|---|---|---|
 | S8-1 | Create F2 pay-as-you-go capacity `spifabricswc` in Sweden Central | 1 | ✅ 2026-10-16, paused (ADR-019) |
-| S8-4 | Capture curated screenshots per Phase 0 §7 (8–15 images) from the trial workspace — **before trial expiry** | 2 | `/docs/screenshots/` populated |
-| S8-2 | Rebuild the workspace from the repository in Sweden Central per `01-docs/rebuild_checklist.md` — **after trial expiry**; verify one notebook runs on F2. Create items, run DDL, paste the pipeline JSONs with new IDs, re-select the dataflow destinations, full master run, validation checks | 4–6 | Items active on paid capacity |
-| S8-3 | Execute `spi_pl_master` end-to-end with full history | 1–2 | Full data resolved |
-| S8-5 | Pause capacity; final smoke test on resume | 0.5 | Sprint closed |
-| S8-6 | Record demonstration video — **post-trial** | 2–3 | Video URL captured |
+| S8-4 | Capture curated screenshots per Phase 0 §7 (8–15 images) from the trial workspace — **before trial expiry** | 2 | ✅ 2026-10-19 and 2026-10-30, `01-docs/evidence/` (15 images) |
+| S8-2 | Rebuild the workspace from the repository in Sweden Central per `01-docs/rebuild_checklist.md` — **after trial expiry**; verify one notebook runs on F2. Create items, run DDL, paste the pipeline JSONs with new IDs, re-select the dataflow destinations, full master run, validation checks | 4–6 | ✅ 2026-10-21, ~2.5 h (`rebuild_id_map.md`, ADR-019 addendum) |
+| S8-3 | Execute `spi_pl_master` end-to-end with full history | 1–2 | ✅ 2026-10-21; again 2026-10-29 |
+| S8-5 | Pause capacity; final smoke test on resume | 0.5 | ✅ Paused 2026-10-29 |
+| S8-6 | Record demonstration video — **post-trial** | 2–3 | Deferred after publication |
 
 Task IDs are kept from v1.1; rows are in execution order.
 
@@ -425,11 +425,11 @@ Task IDs are kept from v1.1; rows are in execution order.
 
 | ID | Task | Est. (h) | Output |
 |---|---|---|---|
-| S9-1 | Export Fabric artifacts (notebooks, pipelines, dataflows, PBIP) into `/src/` | 2–3 | Code in repository |
+| S9-1 | Export Fabric artifacts (notebooks, pipelines, dataflows, PBIP) into `/src/` | 2–3 | ✅ `03-src/` |
 | S9-2 | Author folder-level README files (`/src/notebooks/`, `/src/pipelines/`, etc.) | 2–3 | Navigable repository structure |
 | S9-3 | Consolidate `lessons-learned.md` from accumulated sprint notes | 2 | Polished operational findings document |
-| S9-4 | Author the main README — primary portfolio surface | 4–6 | Landing document |
-| S9-5 | Embed demonstration video and curated screenshots into README | 1 | Visual narrative integrated |
+| S9-4 | Author the main README — primary portfolio surface | 4–6 | ✅ 2026-10-30, independently reviewed |
+| S9-5 | Embed demonstration video and curated screenshots into README | 1 | Screenshots ✅; video deferred |
 | S9-6 | Final cross-check: PDF references, code links, internal navigation | 1 | Quality pass |
 | S9-7 | Final defense rehearsal: 30-minute mock-interview coverage of the full project | 2 | Production-ready |
 
@@ -518,3 +518,4 @@ The plan defined in this document is engineered to produce that outcome.
 | 1.2 | 2026-10-09 | Replan after Sprint 6 closed early; Sprint 7 10–16 Oct, Sprint 8 17–18 Oct (§2.2). |
 | 1.2 | 2026-10-11 | Power BI licence decision: no Pro; .pbix offline demo; video after trial (§2.2); F2 precondition blocked by quota 0, support ticket opened. |
 | 1.3 | 2026-10-16 | Paid capacity F2 in Sweden Central after North Europe quota rejection (ADR-019, §2.2). Sprint 8 rebuilds the workspace from the repository after the trial instead of moving it; S7A marked done. |
+| 1.4 | 2026-10-30 | Sprints 7–8 closed: Import-mode report, 6 pages (ADR-020); workspace rebuilt on F2 2026-10-21. Sprint 9: README written and reviewed; video and mock interview deferred after publication. |

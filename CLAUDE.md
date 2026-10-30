@@ -7,7 +7,7 @@ Standing context for Claude Code sessions in this repository.
 **SPI — Spain Public Indicators.** An end-to-end analytics platform on
 Microsoft Fabric ingesting five Spanish public data sources into a
 medallion architecture (Bronze → Silver → Gold), surfaced as a star
-schema in a Fabric Warehouse and a Power BI report over Direct Lake.
+schema in a Fabric Warehouse and a Power BI report in Import mode (ADR-020).
 
 Sources, in ingestion order (ascending complexity):
 
@@ -24,6 +24,14 @@ engineering judgment to prospective freelance clients — the reasoning
 is the deliverable as much as the code.
 
 ## Current state
+
+**Project status (2026-10-30): Sprints 7 and 8 closed; Sprint 9 (publication)
+in progress.** Workspace rebuilt on F2 `spifabricswc` in Sweden Central on
+2026-10-21 (ADR-019 addendum, `01-docs/rebuild_id_map.md`); capacity paused
+between runs. Power BI: six-page Import-mode report saved as PBIP in
+`03-src/power-bi/` (ADR-020). Root README written and reviewed. Deferred
+after publication: demonstration video, mock interview, CI/CD (roadmap).
+The history below is kept as written.
 
 **Sprint 3 (Fabric environment setup) — closed 2026-09-10.**
 
@@ -149,7 +157,7 @@ contradictions; do not resolve them.
   notebooks/       Energy, Construction and Tax notebooks: bronze/, silver/
   pipelines/       Bronze pipelines for all five sources (exported JSON)
   dataflows/       Silver, Gold and dimension dataflows (exported M)
-  power-bi/        (empty — Sprint 7)
+  power-bi/        Power BI Project (PBIP, Import mode, ADR-020)
 99-private/        Gitignored. Source data, screenshots, personal journal
 ```
 

@@ -1,9 +1,8 @@
-# Architecture Decision Records — SPI (Sector Performance Indicators)
+# Architecture Decision Records — SPI (Spain Public Indicators)
 
-**Solution / stack:** Microsoft Fabric · Lakehouse · Warehouse · Dataflows Gen2 · Notebooks (PySpark / Python) · Power BI (Direct Lake)
+**Solution / stack:** Microsoft Fabric · Lakehouse · Warehouse · Dataflows Gen2 · Notebooks (PySpark / Python) · Power BI (Import, ADR-020)
 **Project:** SPI — public-data analytics platform (Spain indicators)
 **Status:** Living document — maintained through Phase 5 development
-**Confidential — Portfolio project — Not for distribution**
 
 ---
 
@@ -42,6 +41,7 @@ truth are marked `[TBC: …]` and listed in the delivery note.
 | 017 | Tax Silver: additive concepts and regional scope | Accepted | Tax Silver notebook, Gold dimensions, report |
 | 018 | Layer orchestration: layer pipelines invoke the per-source pipelines | Accepted | Layer and master pipelines, log gate, Sprint 7 |
 | 019 | Paid Fabric capacity in Sweden Central | Accepted | Capacity strategy, Sprint 8 rebuild |
+| 020 | Power BI semantic model in Import mode, saved as PBIP | Accepted | Semantic model, report |
 
 ---
 
@@ -171,6 +171,13 @@ DAX-computed derivations are validated against INE's official published figures.
 - The Bronze-vs-official reconciliation is itself a portfolio artifact: it shows computed
   logic checked against the source authority rather than trusted blindly.
   `[TBC: record the reconciliation outcome once Silver and Gold are built in Sprint 6.]`
+
+**Addendum — 2026-10-17: CPI reconciliation against INE.** The report's annual
+rate (`YoY %`, computed from the base index, ADR-002) was compared with INE's
+published annual CPI rate for Nacional, *Índice general*, January–September
+2026, at one decimal. All nine months match (2.3% in January to 4.9% in
+September). This closes the `[TBC]` above for IPC. The other sources have no
+official rate to compare against in the same form.
 
 ---
 
@@ -2261,7 +2268,7 @@ trial expires (~2026-10-20), and `phase5_dev_plan.md` §2.2 made North
 Europe mandatory for it.
 
 Creating the F2 in North Europe failed: Fabric CapacityQuota 0, the
-automatic increase was rejected, and support ticket 2610110050000713
+automatic increase was rejected, and a support ticket
 was opened (`phase5_dev_plan.md` §2.2, 2026-10-11).
 
 On 2026-10-15 the support ticket rejected the quota request: North
@@ -2324,3 +2331,96 @@ offered, and its creation succeeded on the first try.
 - **Unverified:** whether F2 runs the notebooks (`phase5_dev_plan.md`
   §2.1 precondition); whether the source connections, which are tenant
   objects, survive the rebuild with their IDs (rebuild checklist §8).
+
+**Addendum — 2026-10-21: rebuild validated.** The workspace was rebuilt on
+`spifabricswc` from the repository (`01-docs/rebuild_id_map.md`). Both
+unverified points above are closed:
+
+- **F2 runs the notebooks.** All seven ran on the Python runtime;
+  `spi_pl_master` succeeded on the first run (Bronze 10m42s, Silver 6m58s,
+  Gold 5m8s).
+- **The tenant connections survived** with their IDs (Warehouse, INE HTTP,
+  Azure SQL) and were reused unchanged.
+- Azure SQL in North Europe was reached from Sweden Central with no firewall
+  change ("Allow Azure services" on).
+
+---
+
+## ADR-020 — Power BI semantic model in Import mode, saved as PBIP
+
+**Date:** 2026-10-17 (decided) · 2026-10-30 (recorded)
+**Status:** Accepted
+
+### Context
+
+Phase 4 and `phase5_dev_plan.md` (S7B-1) planned a **Direct Lake**
+semantic model on `spi_warehouse`, published in the Fabric workspace.
+
+Two facts changed that plan:
+
+- **No Power BI Pro licence** (`phase5_dev_plan.md` §2.2, 2026-10-11).
+  Below F64, publishing and viewing reports in the service needs Pro.
+  After the trial, a workspace report cannot be viewed.
+- **The capacity is paused** most of the time to control cost
+  (ADR-019). A Direct Lake model reads OneLake at query time, so it
+  shows nothing while the capacity is paused.
+
+### Decision
+
+**Import mode from the Warehouse SQL endpoint, built in Power BI
+Desktop and saved as a Power BI Project (PBIP)** in
+`03-src/power-bi/`.
+
+- Tables: `Fact Indicators`, `Indicator`, `Region`, `Calendar`,
+  `Source`, plus `_Measures` and `_Refresh` (refresh timestamp).
+- The model is defined in TMDL and the report in PBIR, so both are
+  readable and diffable in Git.
+- The imported data cache (`.pbi/cache.abf`) and local settings are
+  excluded from Git.
+
+### Rationale
+
+- **Works without a licence or a running capacity.** Desktop is free;
+  the imported data stays in the file.
+- **Refresh is explicit.** Resume the capacity, run `spi_pl_master`,
+  refresh the model, pause. One short session per update.
+- **Version control.** PBIP is text, so model and report changes are
+  reviewable like code. A `.pbix` is a binary.
+- **Small data.** About 26K fact rows; Import has no size or
+  performance cost here.
+
+### Alternatives considered
+
+**Direct Lake (original plan).** Rejected: unusable without Pro or a
+running capacity.
+
+**DirectQuery to the SQL endpoint.** Rejected: same dependency on a
+running capacity, slower, and more DAX limitations.
+
+**`.pbix` only.** Rejected as the source format: binary, not
+reviewable in Git.
+
+### Consequences
+
+- **Supersedes** S7B-1 (Direct Lake model) in `phase5_dev_plan.md`, the
+  "Power BI via Direct Lake" wording in ADR-002, and the Direct Lake
+  references in Phase 4 and `03-src/power-bi/README.md`.
+- **Data freshness is manual:** the report shows the data of the last
+  Desktop refresh ("Data refreshed" in each page header).
+- **A clone of the repository has the model but no data.** The cache is
+  excluded from Git, so opening the PBIP needs a refresh against a
+  running `spi_warehouse`. For an offline demo, a `.pbix` copy with
+  data can be published as a release asset.
+- **Repointing is one change.** After the rebuild (ADR-019) the
+  model was repointed to the new SQL endpoint with Change Source in
+  Data source settings, validated 2026-10-29.
+- **Model-level choices**, recorded here for reference:
+  - Measures read the fact table, because relationships filter one
+    way (dimension → fact).
+  - `Value` averages index sources (IPC, IPI) and sums flow sources
+    (Energy, Construction, Tax); it returns blank when more than one
+    region or source is in scope.
+  - Time intelligence uses `month_index = year * 12 + month`, because
+    the calendar is monthly and cannot be marked as a date table.
+  - Construction uses a rolling 12-month annual rate on its regional
+    chart, because single large tenders make the monthly rate unreadable.

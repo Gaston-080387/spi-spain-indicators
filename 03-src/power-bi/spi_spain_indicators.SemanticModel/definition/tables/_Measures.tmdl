@@ -134,6 +134,46 @@ table _Measures
 	measure 'Data Refreshed' = "Data refreshed: " & FORMAT ( MAX ( '_Refresh'[Refreshed] ), "d mmm yyyy" )
 		lineageTag: 24b643df-06c5-4b0b-9609-80f468e3550b
 
+	measure 'Latest MoM %' =
+			
+			VAR _k = [Latest Period Key]
+			RETURN CALCULATE ( [MoM %], REMOVEFILTERS ( 'Calendar' ), 'Calendar'[calendar_key] = _k )
+		formatString: " ▴ +0.0%;▾ -0.0%;0.0%"
+		lineageTag: 03360772-6616-450a-909d-b814cf60792c
+
+		annotation PBI_FormatHint = {"isCustom":true}
+
+	measure 'YoY % (12m)' =
+			
+			VAR _k         = [Latest Period Key]
+			VAR _latestIdx = INT ( _k / 100 ) * 12 + MOD ( _k, 100 )
+			VAR _idx       = MAX ( 'Calendar'[month_index] )
+			RETURN IF ( _idx > _latestIdx - 12 && _idx <= _latestIdx, [YoY %] )
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: 3a85e374-110c-4349-b7e0-08429eff22f1
+
+	measure 'Latest YoY % (plain)' = [Latest YoY %]
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: a393703f-41eb-4705-9eda-bd1cbbc556e4
+
+	measure 'Value 12m' =
+			
+			VAR _max = MAX ( 'Calendar'[month_index] )
+			RETURN CALCULATE ( [Value], REMOVEFILTERS ( 'Calendar' ),
+			    'Calendar'[month_index] > _max - 12, 'Calendar'[month_index] <= _max )
+		formatString: 0.0
+		lineageTag: f04370d4-bca6-4354-922e-6468e8547f4f
+
+	measure 'YoY % (rolling 12m)' =
+			
+			VAR _max  = MAX ( 'Calendar'[month_index] )
+			VAR _cur  = [Value 12m]
+			VAR _prev = CALCULATE ( [Value], REMOVEFILTERS ( 'Calendar' ),
+			    'Calendar'[month_index] > _max - 24, 'Calendar'[month_index] <= _max - 12 )
+			RETURN IF ( NOT ISBLANK ( [Value] ) && NOT ISBLANK ( _prev ), DIVIDE ( _cur - _prev, _prev ) )
+		formatString: #,0.0%;-#,0.0%;#,0.0%
+		lineageTag: 3248b489-b81c-4cd5-88db-dbe7ec221b8e
+
 	column Column1
 		dataType: string
 		isHidden
